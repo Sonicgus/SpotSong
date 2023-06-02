@@ -121,6 +121,73 @@ def add_user():
 
 
 #
+# PUT
+#
+# Authenticate a User based on a JSON payload
+#
+# To use it, you need to use postman or curl:
+#
+# curl -X PUT http://localhost:8080/dbproj/user -H 'Content-Type: application/json' -d '{'username': 'username',
+# 'password': 'password'}'
+#
+
+@app.route('/dbproj/user', methods=['PUT'])
+def authenticate_user():
+    logger.info('PUT /dbproj/user')
+    payload = flask.request.get_json()
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    logger.debug(f'PUT /dbproj/user - payload: {payload}')
+
+    # do not forget to validate every argument, e.g.,:
+    if 'username' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'username is required to login'}
+        return flask.jsonify(response)
+
+    if 'password' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'password is required to login'}
+        return flask.jsonify(response)
+
+    # parameterized queries, good for security and performance
+    statement = 'SELECT username, password FROM users WHERE username = %s and password = %s'
+    values = (payload['username'], payload['password'])
+
+    try:
+        cur.execute(statement, values)
+
+        row = cur.fetchone()
+
+        if row is None:
+            response = {'status': StatusCodes['api_error'],
+                        'errors': 'Passsword ou username incorretos'}
+
+        else:
+            response = {'status': StatusCodes['success'],
+                        'results': jwt.encode(
+                            {'username': payload['username'], 'password': payload['password'], 'exp': (
+                                    datetime.datetime.now() + datetime.timedelta(minutes=2)).timestamp()}, "segredo",
+                            algorithm="HS256")}
+
+        # commit the transaction
+        conn.commit()
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(error)
+        response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
+
+        # an error occurred, rollback
+        conn.rollback()
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
+
+#
 # GET
 #
 # Obtain all departments in JSON format
@@ -284,7 +351,7 @@ def update_departments(ndep):
     values = (payload['localidade'], ndep)
 
     try:
-        res = cur.execute(statement, values)
+        cur.execute(statement, values)
         response = {'status': StatusCodes['success'], 'results': f'Updated: {cur.rowcount}'}
 
         # commit the transaction
