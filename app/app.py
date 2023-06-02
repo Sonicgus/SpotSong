@@ -78,9 +78,6 @@ def add_user():
     logger.info('POST /dbproj/user')
     payload = flask.request.get_json()
 
-    conn = db_connection()
-    cur = conn.cursor()
-
     logger.debug(f'POST /dbproj/user - payload: {payload}')
 
     if 'username' not in payload:
@@ -98,6 +95,9 @@ def add_user():
     # parameterized queries, good for security and performance
     statement = 'INSERT INTO users (username, email, password) VALUES (%s, %s, %s)'
     values = (payload['username'], payload['email'], payload['password'])
+
+    conn = db_connection()
+    cur = conn.cursor()
 
     try:
         cur.execute(statement, values)
@@ -136,9 +136,6 @@ def authenticate_user():
     logger.info('PUT /dbproj/user')
     payload = flask.request.get_json()
 
-    conn = db_connection()
-    cur = conn.cursor()
-
     logger.debug(f'PUT /dbproj/user - payload: {payload}')
 
     # do not forget to validate every argument, e.g.,:
@@ -153,6 +150,9 @@ def authenticate_user():
     # parameterized queries, good for security and performance
     statement = 'SELECT username, password FROM users WHERE username = %s and password = %s'
     values = (payload['username'], payload['password'])
+
+    conn = db_connection()
+    cur = conn.cursor()
 
     try:
         cur.execute(statement, values)
