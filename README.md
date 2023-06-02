@@ -1,2 +1,2 @@
-# Spotsong - Music Streaming Platform
+# SpotSong - Music Streaming Platform
 DB Project 2023
