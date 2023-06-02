@@ -50,7 +50,7 @@ def db_connection():
 ##########################################################
 
 
-@app.route('/')
+@app.route('/dbproj')
 def landing_page():
     return """
 
@@ -64,7 +64,64 @@ def landing_page():
 
 
 #
-# Demo GET
+# POST
+#
+# Add a new user in a JSON payload
+#
+# To use it, you need to use postman or curl:
+#
+# curl -X POST http://localhost:8080/dbproj/user -H 'Content-Type: application/json' -d '{'username': 'username',
+# 'email': email, 'password': 'password'}'
+#
+@app.route('/dbproj/user', methods=['POST'])
+def add_user():
+    logger.info('POST /dbproj/user')
+    payload = flask.request.get_json()
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    logger.debug(f'POST /dbproj/user - payload: {payload}')
+
+    if 'username' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'username value not in payload'}
+        return flask.jsonify(response)
+
+    if 'email' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'email value not in payload'}
+        return flask.jsonify(response)
+
+    if 'password' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'password value not in payload'}
+        return flask.jsonify(response)
+
+    # parameterized queries, good for security and performance
+    statement = 'INSERT INTO users (username, email, password) VALUES (%s, %s, %s)'
+    values = (payload['username'], payload['email'], payload['password'])
+
+    try:
+        cur.execute(statement, values)
+
+        # commit the transaction
+        conn.commit()
+        response = {'status': StatusCodes['success'], 'results': f'Inserted user {payload["username"]}'}
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f'POST /dbproj/user - error: {error}')
+        response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
+
+        # an error occurred, rollback
+        conn.rollback()
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
+
+#
+# GET
 #
 # Obtain all departments in JSON format
 #
@@ -72,10 +129,9 @@ def landing_page():
 #
 # http://localhost:8080/departments/
 #
-
-@app.route('/departments/', methods=['GET'])
+@app.route('/dbproj/departments/', methods=['GET'])
 def get_all_departments():
-    logger.info('GET /departments')
+    logger.info('GET /dbproj/departments')
 
     conn = db_connection()
     cur = conn.cursor()
@@ -84,7 +140,7 @@ def get_all_departments():
         cur.execute('SELECT ndep, nome, local FROM dep')
         rows = cur.fetchall()
 
-        logger.debug('GET /departments - parse')
+        logger.debug('GET /dbproj/departments - parse')
         results = []
         for row in rows:
             logger.debug(row)
@@ -94,7 +150,7 @@ def get_all_departments():
         response = {'status': StatusCodes['success'], 'results': results}
 
     except (Exception, psycopg.DatabaseError) as error:
-        logger.error(f'GET /departments - error: {error}')
+        logger.error(f'GET /dbproj/departments - error: {error}')
         response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
 
     finally:
@@ -105,7 +161,7 @@ def get_all_departments():
 
 
 #
-# Demo GET
+# GET
 #
 # Obtain department with ndep <ndep>
 #
@@ -114,9 +170,9 @@ def get_all_departments():
 # http://localhost:8080/departments/10
 #
 
-@app.route('/departments/<ndep>/', methods=['GET'])
+@app.route('/dbproj/departments/<ndep>/', methods=['GET'])
 def get_department(ndep):
-    logger.info('GET /departments/<ndep>')
+    logger.info('GET /dbproj/departments/<ndep>')
 
     logger.debug(f'ndep: {ndep}')
 
@@ -129,14 +185,14 @@ def get_department(ndep):
 
         row = rows[0]
 
-        logger.debug('GET /departments/<ndep> - parse')
+        logger.debug('GET /dbproj/departments/<ndep> - parse')
         logger.debug(row)
         content = {'ndep': int(row[0]), 'nome': row[1], 'localidade': row[2]}
 
         response = {'status': StatusCodes['success'], 'results': content}
 
     except (Exception, psycopg.DatabaseError) as error:
-        logger.error(f'GET /departments/<ndep> - error: {error}')
+        logger.error(f'GET /dbproj/departments/<ndep> - error: {error}')
         response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
 
     finally:
@@ -147,7 +203,7 @@ def get_department(ndep):
 
 
 #
-# Demo POST
+# POST
 #
 # Add a new department in a JSON payload
 #
@@ -157,15 +213,15 @@ def get_department(ndep):
 # 'ndep': 69, 'nome': 'Seguranca'}'
 #
 
-@app.route('/departments/', methods=['POST'])
+@app.route('/dbproj/departments/', methods=['POST'])
 def add_departments():
-    logger.info('POST /departments')
+    logger.info('POST /dbproj/departments')
     payload = flask.request.get_json()
 
     conn = db_connection()
     cur = conn.cursor()
 
-    logger.debug(f'POST /departments - payload: {payload}')
+    logger.debug(f'POST /dbproj/departments - payload: {payload}')
 
     # do not forget to validate every argument, e.g.,:
     if 'ndep' not in payload:
@@ -184,7 +240,7 @@ def add_departments():
         response = {'status': StatusCodes['success'], 'results': f'Inserted dep {payload["ndep"]}'}
 
     except (Exception, psycopg.DatabaseError) as error:
-        logger.error(f'POST /departments - error: {error}')
+        logger.error(f'POST /dbproj/departments - error: {error}')
         response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
 
         # an error occurred, rollback
@@ -198,7 +254,7 @@ def add_departments():
 
 
 #
-# Demo PUT
+# PUT
 #
 # Update a department based on a JSON payload
 #
@@ -208,15 +264,15 @@ def add_departments():
 # 'Porto'}'
 #
 
-@app.route('/departments/<ndep>', methods=['PUT'])
+@app.route('/dbproj/departments/<ndep>', methods=['PUT'])
 def update_departments(ndep):
-    logger.info('PUT /departments/<ndep>')
+    logger.info('PUT /dbproj/departments/<ndep>')
     payload = flask.request.get_json()
 
     conn = db_connection()
     cur = conn.cursor()
 
-    logger.debug(f'PUT /departments/<ndep> - payload: {payload}')
+    logger.debug(f'PUT /dbproj/departments/<ndep> - payload: {payload}')
 
     # do not forget to validate every argument, e.g.,:
     if 'localidade' not in payload:
