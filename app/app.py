@@ -35,8 +35,8 @@ StatusCodes = {
 
 def db_connection():
     db = psycopg.connect(
-        user='spotsong_user',
-        password='spotsong_password',
+        user='spotsong',
+        password='spotsong',
         host='127.0.0.1',
         port='5432',
         database='dbspotsong'
