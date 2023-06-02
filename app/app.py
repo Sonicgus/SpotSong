@@ -1,20 +1,20 @@
-##
-## =============================================
-## ============== Bases de Dados ===============
-## ============== LEI  2022/2023 ===============
-## =============================================
-## =================== Demo ====================
-## =============================================
-## =============================================
-## === Department of Informatics Engineering ===
-## =========== University of Coimbra ===========
-## =============================================
-##
-## Authors:
-##   João R. Campos <jrcampos@dei.uc.pt>
-##   Nuno Antunes <nmsa@dei.uc.pt>
-##   BD 2022 Team - https://dei.uc.pt/lei/
-##   University of Coimbra
+#
+# =============================================
+# ============== Bases de Dados ===============
+# ============== LEI  2022/2023 ===============
+# =============================================
+# =================== Demo ====================
+# =============================================
+# =============================================
+# === Department of Informatics Engineering ===
+# =========== University of Coimbra ===========
+# =============================================
+#
+# Authors:
+#   João R. Campos <jrcampos@dei.uc.pt>
+#   Nuno Antunes <nmsa@dei.uc.pt>
+#   BD 2022 Team - https://dei.uc.pt/lei/
+#   University of Coimbra
 
 
 import flask
@@ -30,8 +30,9 @@ StatusCodes = {
     'internal_error': 500
 }
 
+
 ##########################################################
-## DATABASE ACCESS
+# DATABASE ACCESS
 ##########################################################
 
 def db_connection():
@@ -46,10 +47,8 @@ def db_connection():
     return db
 
 
-
-
 ##########################################################
-## ENDPOINTS
+# ENDPOINTS
 ##########################################################
 
 
@@ -65,15 +64,16 @@ def landing_page():
     <br/>
     """
 
-##
-## Demo GET
-##
-## Obtain all departments in JSON format
-##
-## To use it, access:
-##
-## http://localhost:8080/departments/
-##
+
+#
+# Demo GET
+#
+# Obtain all departments in JSON format
+#
+# To use it, access:
+#
+# http://localhost:8080/departments/
+#
 
 @app.route('/departments/', methods=['GET'])
 def get_all_departments():
@@ -87,13 +87,13 @@ def get_all_departments():
         rows = cur.fetchall()
 
         logger.debug('GET /departments - parse')
-        Results = []
+        results = []
         for row in rows:
             logger.debug(row)
             content = {'ndep': int(row[0]), 'nome': row[1], 'localidade': row[2]}
-            Results.append(content)  # appending to the payload to be returned
+            results.append(content)  # appending to the payload to be returned
 
-        response = {'status': StatusCodes['success'], 'results': Results}
+        response = {'status': StatusCodes['success'], 'results': results}
 
     except (Exception, psycopg2.DatabaseError) as error:
         logger.error(f'GET /departments - error: {error}')
@@ -106,15 +106,15 @@ def get_all_departments():
     return flask.jsonify(response)
 
 
-##
-## Demo GET
-##
-## Obtain department with ndep <ndep>
-##
-## To use it, access:
-##
-## http://localhost:8080/departments/10
-##
+#
+# Demo GET
+#
+# Obtain department with ndep <ndep>
+#
+# To use it, access:
+#
+# http://localhost:8080/departments/10
+#
 
 @app.route('/departments/<ndep>/', methods=['GET'])
 def get_department(ndep):
@@ -148,15 +148,16 @@ def get_department(ndep):
     return flask.jsonify(response)
 
 
-##
-## Demo POST
-##
-## Add a new department in a JSON payload
-##
-## To use it, you need to use postman or curl:
-##
-## curl -X POST http://localhost:8080/departments/ -H 'Content-Type: application/json' -d '{'localidade': 'Polo II', 'ndep': 69, 'nome': 'Seguranca'}'
-##
+#
+# Demo POST
+#
+# Add a new department in a JSON payload
+#
+# To use it, you need to use postman or curl:
+#
+# curl -X POST http://localhost:8080/departments/ -H 'Content-Type: application/json' -d '{'localidade': 'Polo II',
+# 'ndep': 69, 'nome': 'Seguranca'}'
+#
 
 @app.route('/departments/', methods=['POST'])
 def add_departments():
@@ -198,15 +199,16 @@ def add_departments():
     return flask.jsonify(response)
 
 
-##
-## Demo PUT
-##
-## Update a department based on a JSON payload
-##
-## To use it, you need to use postman or curl:
-##
-## curl -X PUT http://localhost:8080/departments/ -H 'Content-Type: application/json' -d '{'ndep': 69, 'localidade': 'Porto'}'
-##
+#
+# Demo PUT
+#
+# Update a department based on a JSON payload
+#
+# To use it, you need to use postman or curl:
+#
+# curl -X PUT http://localhost:8080/departments/ -H 'Content-Type: application/json' -d '{'ndep': 69, 'localidade':
+# 'Porto'}'
+#
 
 @app.route('/departments/<ndep>', methods=['PUT'])
 def update_departments(ndep):
@@ -249,7 +251,6 @@ def update_departments(ndep):
 
 
 if __name__ == '__main__':
-
     # set up logging
     logging.basicConfig(filename='log_file.log')
     logger = logging.getLogger('logger')
