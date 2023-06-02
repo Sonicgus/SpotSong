@@ -39,7 +39,7 @@ def db_connection():
         password='spotsong',
         host='127.0.0.1',
         port='5432',
-        database='dbspotsong'
+        dbname='dbspotsong'
     )
 
     return db
