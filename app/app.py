@@ -80,6 +80,7 @@ def add_user():
 
     logger.debug(f'POST /dbproj/user - payload: {payload}')
 
+    # validate every argument:
     if 'username' not in payload:
         response = {'status': StatusCodes['api_error'], 'results': 'username value not in payload'}
         return flask.jsonify(response)
@@ -138,7 +139,7 @@ def authenticate_user():
 
     logger.debug(f'PUT /dbproj/user - payload: {payload}')
 
-    # do not forget to validate every argument, e.g.,:
+    # validate every argument:
     if 'username' not in payload:
         response = {'status': StatusCodes['api_error'], 'results': 'username is required to login'}
         return flask.jsonify(response)
@@ -167,7 +168,7 @@ def authenticate_user():
             response = {'status': StatusCodes['success'],
                         'results': jwt.encode(
                             {'username': payload['username'], 'password': payload['password'], 'exp': (
-                                    datetime.datetime.now() + datetime.timedelta(minutes=2)).timestamp()}, "segredo",
+                                    datetime.datetime.now() + datetime.timedelta(minutes=5)).timestamp()}, "segredo",
                             algorithm="HS256")}
 
     except (Exception, psycopg.DatabaseError) as error:
