@@ -16,7 +16,7 @@
 
 import flask
 import logging
-import psycopg2
+import psycopg
 import time
 
 app = flask.Flask(__name__)
@@ -33,12 +33,12 @@ StatusCodes = {
 ##########################################################
 
 def db_connection():
-    db = psycopg2.connect(
-        user='aulaspl',
-        password='aulaspl',
+    db = psycopg.connect(
+        user='spotsong_user',
+        password='spotsong_password',
         host='127.0.0.1',
         port='5432',
-        database='dbfichas'
+        database='dbspotsong'
     )
 
     return db
@@ -92,7 +92,7 @@ def get_all_departments():
 
         response = {'status': StatusCodes['success'], 'results': results}
 
-    except (Exception, psycopg2.DatabaseError) as error:
+    except (Exception, psycopg.DatabaseError) as error:
         logger.error(f'GET /departments - error: {error}')
         response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
 
@@ -134,7 +134,7 @@ def get_department(ndep):
 
         response = {'status': StatusCodes['success'], 'results': content}
 
-    except (Exception, psycopg2.DatabaseError) as error:
+    except (Exception, psycopg.DatabaseError) as error:
         logger.error(f'GET /departments/<ndep> - error: {error}')
         response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
 
@@ -182,7 +182,7 @@ def add_departments():
         conn.commit()
         response = {'status': StatusCodes['success'], 'results': f'Inserted dep {payload["ndep"]}'}
 
-    except (Exception, psycopg2.DatabaseError) as error:
+    except (Exception, psycopg.DatabaseError) as error:
         logger.error(f'POST /departments - error: {error}')
         response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
 
@@ -233,7 +233,7 @@ def update_departments(ndep):
         # commit the transaction
         conn.commit()
 
-    except (Exception, psycopg2.DatabaseError) as error:
+    except (Exception, psycopg.DatabaseError) as error:
         logger.error(error)
         response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
 
