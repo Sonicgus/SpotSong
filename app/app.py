@@ -170,15 +170,9 @@ def authenticate_user():
                                     datetime.datetime.now() + datetime.timedelta(minutes=2)).timestamp()}, "segredo",
                             algorithm="HS256")}
 
-        # commit the transaction
-        conn.commit()
-
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(error)
         response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
-
-        # an error occurred, rollback
-        conn.rollback()
 
     finally:
         if conn is not None:
