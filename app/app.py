@@ -1,18 +1,15 @@
-#
 # =============================================
 # ============== Bases de Dados ===============
 # ============== LEI  2022/2023 ===============
-# =============================================
-# =================== Demo ====================
-# =============================================
 # =============================================
 # === Department of Informatics Engineering ===
 # =========== University of Coimbra ===========
 # =============================================
 #
 # Authors:
-#   João R. Campos <jrcampos@dei.uc.pt>
-#   Nuno Antunes <nmsa@dei.uc.pt>
+#   Diogo Tavares <uc2020236566@student.uc.pt>
+#   Gustavo Lima <uc2020217743@student.uc.pt>
+#   Nuno Rodrigues <uc2020246759@student.uc.pt>
 #   BD 2022 Team - https://dei.uc.pt/lei/
 #   University of Coimbra
 
