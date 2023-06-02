@@ -1,7 +1,7 @@
 # SpotSong - Music Streaming Platform - DB Project 2023
 
 ### Tree do repositório:
-.<br/>
+[.](https://github.com/Sonicgus/SpotSong)<br/>
 ├─── [docs](https://github.com/Sonicgus/SpotSong/tree/679e3d6edd0bb7594c60fb1a13b73a0c87909b46/docs) -> pasta que contém pdfs<br/>
 ├─── [onda](https://github.com/Sonicgus/SpotSong/tree/679e3d6edd0bb7594c60fb1a13b73a0c87909b46/onda) -> pasta que contém projeto ONDA exportado em json<br/>
 ├─── [postman](https://github.com/Sonicgus/SpotSong/tree/679e3d6edd0bb7594c60fb1a13b73a0c87909b46/postman) -> pasta que contém coleção com todos os requests para testar a app<br/>
