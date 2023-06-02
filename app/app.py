@@ -53,13 +53,13 @@ def db_connection():
 @app.route('/dbproj')
 def landing_page():
     return """
+    <title>SpotSong</title>
+    
+    <h1>Welcome to SpotSong!</h1>
+    
+    <br>Check the sources for instructions on how to use the endpoints!</br>
 
-    Hello World (Python Native)!  <br/>
-    <br/>
-    Check the sources for instructions on how to use the endpoints!<br/>
-    <br/>
-    BD 2022 Team<br/>
-    <br/>
+    <br>BD 2022 Team</br>
     """
 
 
@@ -196,5 +196,5 @@ if __name__ == '__main__':
 
     host = '127.0.0.1'
     port = 8080
+    logger.info(f'API online: http://{host}:{port}/dbproj')
     app.run(host=host, debug=True, threaded=True, port=port)
-    logger.info(f'API online: http://{host}:{port}')
