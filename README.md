@@ -1,5 +1,7 @@
 # SpotSong - Music Streaming Platform - DB Project 2023
 
+* [PDF - Project Statement](https://github.com/Sonicgus/SpotSong/blob/679e3d6edd0bb7594c60fb1a13b73a0c87909b46/docs/Statement.pdf)
+
 ### Tree do repositório:
 [.](https://github.com/Sonicgus/SpotSong)<br/>
 ├─── [docs](https://github.com/Sonicgus/SpotSong/tree/679e3d6edd0bb7594c60fb1a13b73a0c87909b46/docs) -> pasta que contém pdfs<br/>
@@ -9,5 +11,3 @@
 ├─── [src](https://github.com/Sonicgus/SpotSong/tree/679e3d6edd0bb7594c60fb1a13b73a0c87909b46/src) -> pasta que contém o codigo fonte<br/>
 ├─── [requirements.txt](https://github.com/Sonicgus/SpotSong/blob/679e3d6edd0bb7594c60fb1a13b73a0c87909b46/requirements.txt) -> ficheiro que lista os packages necessários para executar a app<br/>
 └─── [setup.py](https://github.com/Sonicgus/SpotSong/blob/679e3d6edd0bb7594c60fb1a13b73a0c87909b46/setup.py) -> ficheiro de configuração usado para configurar o projeto<br/>
-
-* [PDF - Project Statement](https://github.com/Sonicgus/SpotSong/blob/679e3d6edd0bb7594c60fb1a13b73a0c87909b46/docs/Statement.pdf)
