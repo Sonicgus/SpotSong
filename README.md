@@ -3,7 +3,7 @@
 ### Tree do repositório:
 .<br/>
 ├─── docs -> pasta que contém pdfs<br/>
-├─── ONDA -> pasta que contém projeto ONDA exportado em json<br/>
+├─── onda -> pasta que contém projeto ONDA exportado em json<br/>
 ├─── postman -> pasta que contém coleção com todos os requests para testar a app<br/>
 ├─── sql -> pasta que contém scripts sql<br/>
 ├─── src -> pasta que contém o codigo fonte<br/>
