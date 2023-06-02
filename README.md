@@ -1,2 +1,2 @@
-# Spotsong
-BD - 2023 Project
+# Spotsong - Music Streaming Platform
+DB Project 2023
