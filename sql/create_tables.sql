@@ -80,7 +80,7 @@ CREATE TABLE person (
 CREATE TABLE album (
 	id			 BIGSERIAL,
 	title			 VARCHAR(512) NOT NULL,
-	release		 TIMESTAMP NOT NULL,
+	release_date		 TIMESTAMP NOT NULL,
 	artist_person_users_id BIGINT NOT NULL,
 	label_id		 BIGINT NOT NULL,
 	PRIMARY KEY(id)
