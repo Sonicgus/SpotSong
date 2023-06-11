@@ -94,7 +94,7 @@ def add_user():
         return flask.jsonify(response)
 
     # parameterized queries, good for security and performance
-    statement = 'INSERT INTO users (username, email, password) VALUES (%s, %s, %s)'
+    statement = 'INSERT INTO users (username, email, password) VALUES (%s, %s, %s) RETURNING id'
     values = (payload['username'], payload['email'], payload['password'])
 
     conn = db_connection()
@@ -102,10 +102,11 @@ def add_user():
 
     try:
         cur.execute(statement, values)
+        user_id = cur.fetchone()[0]
 
         # commit the transaction
         conn.commit()
-        response = {'status': StatusCodes['success'], 'results': f'Inserted user {payload["username"]}'}
+        response = {'status': StatusCodes['success'], 'results': f'Inserted user {user_id}'}
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f'POST /dbproj/user - error: {error}')
