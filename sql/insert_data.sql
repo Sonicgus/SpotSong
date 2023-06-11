@@ -8,3 +8,5 @@ INSERT INTO person (address, number, users_id) SELECT 'rua fulano de tal', '969 
 INSERT INTO artist (artistic_name, label_id, person_users_id) SELECT 'artisteiro', l.id, u.id FROM label l, users u WHERE l.name = 'soni' AND u.username = 'artista';
 
 INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES ('opa ganda style','2023-06-11 10:30:00','2023-06-11 10:30:00','rap',2,1);
+
+INSERT INTO album (title, release_date, artist_person_users_id, label_id) VALUES ('classicos dos anos 90','2023-06-11 10:30:00',2,1);
