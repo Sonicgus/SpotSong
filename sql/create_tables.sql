@@ -73,7 +73,6 @@ CREATE TABLE song (
 
 CREATE TABLE person (
 	address	 VARCHAR(512) NOT NULL,
-	email	 VARCHAR(512) NOT NULL,
 	number	 VARCHAR(512) NOT NULL,
 	users_id BIGINT,
 	PRIMARY KEY(users_id)
@@ -107,9 +106,8 @@ CREATE TABLE view (
 
 CREATE TABLE element (
 	position	 BIGSERIAL NOT NULL,
-	song_ismn	 BIGINT,
-	playlist_id BIGINT,
-	PRIMARY KEY(song_ismn,playlist_id)
+	song_ismn	 BIGINT NOT NULL,
+	playlist_id BIGINT NOT NULL
 );
 
 CREATE TABLE card_subscription (
