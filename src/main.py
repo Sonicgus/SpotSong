@@ -205,6 +205,14 @@ def add_song():
     if 'song_name' not in payload:
         response = {'status': StatusCodes['api_error'], 'results': 'song_name value not in payload'}
         return flask.jsonify(response)
+    
+    if 'duration' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'duration value not in payload'}
+        return flask.jsonify(response)
+    
+    if 'genre' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'genre value not in payload'}
+        return flask.jsonify(response)
 
     if 'release_date' not in payload:
         response = {'status': StatusCodes['api_error'], 'results': 'release_date value not in payload'}
@@ -227,13 +235,13 @@ def add_song():
     if 'user_id' not in credentials:
         response = {'status': statusCodes['api_error'], 'results': 'Invalid token'}
         return flask.jsonify(response)
-
+    
     conn = db_connection()
     cur = conn.cursor()
 
     # parameterized queries, good for security and performance
-    statement = 'INSERT INTO users (username, email, password) VALUES (%s, %s, %s)'
-    values = (payload['username'], payload['email'], payload['password'])
+    statement = 'INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %d, %d)'
+    values = (payload['song_name'], payload['release_date'], payload['duration'], payload['genre'], credentials['token'], payload['publisher_id'])
 
     try:
         cur.execute(statement, values)
