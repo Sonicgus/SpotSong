@@ -9,4 +9,4 @@
 ├─── [postman](https://github.com/Sonicgus/SpotSong/tree/679e3d6edd0bb7594c60fb1a13b73a0c87909b46/postman) -> pasta que contém coleção com todos os requests para testar a app<br/>
 ├─── [sql](https://github.com/Sonicgus/SpotSong/tree/679e3d6edd0bb7594c60fb1a13b73a0c87909b46/sql) -> pasta que contém scripts sql<br/>
 ├─── [src](https://github.com/Sonicgus/SpotSong/tree/679e3d6edd0bb7594c60fb1a13b73a0c87909b46/src) -> pasta que contém o codigo fonte<br/>
-├─── [requirements.txt](https://github.com/Sonicgus/SpotSong/blob/679e3d6edd0bb7594c60fb1a13b73a0c87909b46/requirements.txt) -> ficheiro que lista os packages necessários para executar a app<br/>
+└─── [requirements.txt](https://github.com/Sonicgus/SpotSong/blob/679e3d6edd0bb7594c60fb1a13b73a0c87909b46/requirements.txt) -> ficheiro que lista os packages necessários para executar a app<br/>
