@@ -230,26 +230,28 @@ def add_song():
         credentials = jwt.decode(payload["token"], "segredo",  algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
-        response = {'status': statusCodes['api_error'], 'results': 'token invalido. tente autenticar novamente'}
+        response = {'status': StatusCodes['api_error'], 'results': 'token invalido. tente autenticar novamente'}
         return flask.jsonify(response)
     
     if 'user_id' not in credentials:
-        response = {'status': statusCodes['api_error'], 'results': 'Invalid token'}
+        response = {'status': StatusCodes['api_error'], 'results': 'Invalid token'}
         return flask.jsonify(response)
     
     conn = db_connection()
     cur = conn.cursor()
 
     # parameterized queries, good for security and performance
-    statement = 'INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %d, %d)'
-    values = (payload['song_name'], payload['release_date'], payload['duration'], payload['genre'], credentials['token'], payload['publisher_id'])
+    statement = 'INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn'
+    values = (payload['song_name'], payload['release_date'], payload['duration'], payload['genre'], credentials['user_id'], payload['publisher_id'])
 
     try:
         cur.execute(statement, values)
 
+        song_id = cur.fetchone()[0]
+
         # commit the transaction
         conn.commit()
-        response = {'status': StatusCodes['success'], 'results': f'Inserted song {payload["song_name"]}'}
+        response = {'status': StatusCodes['success'], 'results': f'Inserted song {song_id}'}
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f'POST /dbproj/song - error: {error}')
