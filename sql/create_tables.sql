@@ -98,7 +98,7 @@ CREATE TABLE card (
 
 CREATE TABLE view (
 	id			 BIGSERIAL,
-	when			 TIMESTAMP NOT NULL,
+	date_view		 TIMESTAMP NOT NULL,
 	song_ismn		 BIGINT,
 	consumer_person_users_id BIGINT,
 	PRIMARY KEY(id,song_ismn,consumer_person_users_id)
