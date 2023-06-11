@@ -149,7 +149,7 @@ def authenticate_user():
         return flask.jsonify(response)
 
     # parameterized queries, good for security and performance
-    statement = 'SELECT username, password FROM users WHERE username = %s and password = %s'
+    statement = 'SELECT id FROM users WHERE username = %s and password = %s'
     values = (payload['username'], payload['password'])
 
     conn = db_connection()
@@ -167,13 +167,87 @@ def authenticate_user():
         else:
             response = {'status': StatusCodes['success'],
                         'results': jwt.encode(
-                            {'username': payload['username'], 'password': payload['password'], 'exp': (
+                            {'user_id': row[0], 'exp': (
                                     datetime.datetime.now() + datetime.timedelta(minutes=5)).timestamp()}, "segredo",
                             algorithm="HS256")}
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(error)
         response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
+#
+# POST
+#
+# Add a new song in a JSON payload
+#
+# To use it, you need to use postman or curl:
+#
+# curl -X POST http://localhost:8080/dbproj/song -H 'Content-Type: application/json' -d '{“song_name”: “name”, “release_date”: “date”, “publisher”: publisher_id, “other_artists”: [artist_id1, artist_id2, (…)]}, (…)}
+#
+@app.route('/dbproj/song', methods=['POST'])
+def add_song():
+    logger.info('POST /dbproj/song')
+    payload = flask.request.get_json()
+
+    logger.debug(f'POST /dbproj/song - payload: {payload}')
+
+    # validate every argument:
+    if 'token' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'token value not in payload'}
+        return flask.jsonify(response)
+
+    if 'song_name' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'song_name value not in payload'}
+        return flask.jsonify(response)
+
+    if 'release_date' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'release_date value not in payload'}
+        return flask.jsonify(response)
+    
+    if 'publisher_id' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'publisher_id value not in payload'}
+        return flask.jsonify(response)
+    
+    if 'other_artists' in payload:
+        print("other artists")
+
+    try:
+        credentials = jwt.decode(payload["token"], "segredo",  algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {'status': statusCodes['api_error'], 'results': 'token invalido. tente autenticar novamente'}
+        return flask.jsonify(response)
+    
+    if 'user_id' not in credentials:
+        response = {'status': statusCodes['api_error'], 'results': 'Invalid token'}
+        return flask.jsonify(response)
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    # parameterized queries, good for security and performance
+    statement = 'INSERT INTO users (username, email, password) VALUES (%s, %s, %s)'
+    values = (payload['username'], payload['email'], payload['password'])
+
+    try:
+        cur.execute(statement, values)
+
+        # commit the transaction
+        conn.commit()
+        response = {'status': StatusCodes['success'], 'results': f'Inserted song {payload["song_name"]}'}
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f'POST /dbproj/song - error: {error}')
+        response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
+
+        # an error occurred, rollback
+        conn.rollback()
 
     finally:
         if conn is not None:
