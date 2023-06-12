@@ -101,8 +101,6 @@ def add_user():
             "results": "password value not in payload",
         }
         return flask.jsonify(response)
-    
-
 
     # parameterized queries, good for security and performance
     statement = (
@@ -437,9 +435,9 @@ def detail_artist(artist_id):
     cur = conn.cursor()
 
     # parameterized queries, good for security and performance
-    statement = 'SELECT artist.artistic_name, song.ismn, album.id FROM artist JOIN artist_song ON artist_song.artist_person_users_id = artist.person_users_id JOIN song ON song.ismn = artist_song.song_ismn JOIN song_album ON song_album.song_ismn = song.ismn JOIN album ON album.id = song_album.album_id WHERE artist.person_users_id = %s;'
+    statement = "SELECT artist.artistic_name, song.ismn, album.id FROM artist JOIN artist_song ON artist_song.artist_person_users_id = artist.person_users_id JOIN song ON song.ismn = artist_song.song_ismn JOIN song_album ON song_album.song_ismn = song.ismn JOIN album ON album.id = song_album.album_id WHERE artist.person_users_id = %s;"
     values = (artist_id,)
-    
+
     try:
         cur.execute(statement, values)
 
@@ -448,7 +446,7 @@ def detail_artist(artist_id):
         if len(all) == 0:
             response = {
                 "status": StatusCodes["api_error"],
-                "errors": 'Nothing foud with that user id',
+                "errors": "Nothing foud with that user id",
             }
             conn.close()
             return flask.jsonify(response)
@@ -469,9 +467,9 @@ def detail_artist(artist_id):
 
                 results = []
 
-        results.append({"name":artistic_name})
+        results.append({"name": artistic_name})
 
-        results.append({"songs":songs})
+        results.append({"songs": songs})
 
         results.append({"albuns": albuns})
 
@@ -800,14 +798,14 @@ def add_playlist():
             "results": "playlist_name value not in payload",
         }
         return flask.jsonify(response)
-    
+
     if "visibility" not in payload:
         response = {
             "status": StatusCodes["api_error"],
             "results": "visibility value not in payload",
         }
         return flask.jsonify(response)
-    
+
     if "songs" not in payload:
         response = {
             "status": StatusCodes["api_error"],
@@ -835,7 +833,7 @@ def add_playlist():
     if "user_id" not in credentials:
         response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
         return flask.jsonify(response)
-    
+
     visibilidade = ""
 
     if payload["visibility"] == "private":
@@ -861,9 +859,9 @@ def add_playlist():
 
         playlist_id = cur.fetchone()[0]
 
-        for p in range(1,1+len(payload["songs"])):
+        for p in range(1, 1 + len(payload["songs"])):
             statement = "INSERT INTO playlist_song (position, song_ismn, playlist_id) VALUES (%s, %s, %s);"
-            values = (p, payload["songs"][p-1], playlist_id)
+            values = (p, payload["songs"][p - 1], playlist_id)
 
             cur.execute(statement, values)
 
@@ -893,33 +891,43 @@ def add_playlist():
 # POST
 #
 
-@app.route('/dbproj/card', methods=['POST'])
+
+@app.route("/dbproj/card", methods=["POST"])
 def generate_cards():
-    logger.info('POST /dbproj/card')
+    logger.info("POST /dbproj/card")
     payload = flask.request.get_json()
 
-    logger.debug(f'POST /dbproj/card - payload: {payload}')
+    logger.debug(f"POST /dbproj/card - payload: {payload}")
 
     # validate every argument:
-    if 'number_cards' not in payload:
-        response = {'status': StatusCodes['api_error'], 'results': 'number_cards value not in payload'}
+    if "number_cards" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "number_cards value not in payload",
+        }
         return flask.jsonify(response)
 
-    if 'card_price' not in payload:
-        response = {'status': StatusCodes['api_error'], 'results': 'card_price value not in payload'}
+    if "card_price" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "card_price value not in payload",
+        }
         return flask.jsonify(response)
-    
+
     try:
-        credentials = jwt.decode(payload["token"], secret_key,  algorithms="HS256")
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
-        response = {'status': StatusCodes['api_error'], 'results': 'token invalido. tente autenticar novamente'}
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token invalido. tente autenticar novamente",
+        }
         return flask.jsonify(response)
-    
-    if 'user_id' not in credentials:
-        response = {'status': StatusCodes['api_error'], 'results': 'Invalid token'}
+
+    if "user_id" not in credentials:
+        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
         return flask.jsonify(response)
-    
+
     amount = 0
 
     if payload["card_price"] == 10:
@@ -929,20 +937,25 @@ def generate_cards():
     elif payload["card_price"] == 50:
         amount = 50
     else:
-        response = {'status': StatusCodes['api_error'], 'results': 'Invalid card_price'}
+        response = {"status": StatusCodes["api_error"], "results": "Invalid card_price"}
         return flask.jsonify(response)
 
-    
     conn = db_connection()
     cur = conn.cursor()
 
     chars = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890"
-    
+
     try:
         cards = []
-        for i in range(int(payload['number_cards'])):
-            statement = 'INSERT INTO card (code, expire, amount, type, administrator_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;'
-            values = (''.join(random.choices(chars, k=16)), datetime.datetime.now() + datetime.timedelta(days=1), amount, amount, credentials['user_id'])
+        for i in range(int(payload["number_cards"])):
+            statement = "INSERT INTO card (code, expire, amount, type, administrator_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
+            values = (
+                "".join(random.choices(chars, k=16)),
+                datetime.datetime.now() + datetime.timedelta(days=1),
+                amount,
+                amount,
+                credentials["user_id"],
+            )
 
             cur.execute(statement, values)
             card_id = cur.fetchone()[0]
@@ -951,11 +964,11 @@ def generate_cards():
         # commit the transaction
         conn.commit()
 
-        response = {'status': StatusCodes['success'], 'results': cards}
+        response = {"status": StatusCodes["success"], "results": cards}
 
     except (Exception, psycopg.DatabaseError) as error:
-        logger.error(f'POST /dbproj/card - error: {error}')
-        response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
+        logger.error(f"POST /dbproj/card - error: {error}")
+        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
         conn.rollback()
