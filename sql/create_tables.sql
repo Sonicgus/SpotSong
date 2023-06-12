@@ -12,9 +12,10 @@ CREATE TABLE consumer (
 );
 
 CREATE TABLE artist (
-	artistic_name	 VARCHAR(512) NOT NULL,
-	label_id	 BIGINT NOT NULL,
-	person_users_id BIGINT,
+	artistic_name		 VARCHAR(512) NOT NULL,
+	administrator_users_id BIGINT,
+	label_id		 BIGINT NOT NULL,
+	person_users_id	 BIGINT,
 	PRIMARY KEY(person_users_id)
 );
 
@@ -130,8 +131,9 @@ CREATE TABLE artist_song (
 ALTER TABLE users ADD UNIQUE (username);
 ALTER TABLE consumer ADD CONSTRAINT consumer_fk1 FOREIGN KEY (person_users_id) REFERENCES person(users_id);
 ALTER TABLE artist ADD UNIQUE (artistic_name);
-ALTER TABLE artist ADD CONSTRAINT artist_fk1 FOREIGN KEY (label_id) REFERENCES label(id);
-ALTER TABLE artist ADD CONSTRAINT artist_fk2 FOREIGN KEY (person_users_id) REFERENCES person(users_id);
+ALTER TABLE artist ADD CONSTRAINT artist_fk1 FOREIGN KEY (administrator_users_id) REFERENCES administrator(users_id);
+ALTER TABLE artist ADD CONSTRAINT artist_fk2 FOREIGN KEY (label_id) REFERENCES label(id);
+ALTER TABLE artist ADD CONSTRAINT artist_fk3 FOREIGN KEY (person_users_id) REFERENCES person(users_id);
 ALTER TABLE administrator ADD CONSTRAINT administrator_fk1 FOREIGN KEY (users_id) REFERENCES users(id);
 ALTER TABLE subscription ADD CONSTRAINT subscription_fk1 FOREIGN KEY (consumer_person_users_id) REFERENCES consumer(person_users_id);
 ALTER TABLE playlist ADD CONSTRAINT playlist_fk1 FOREIGN KEY (consumer_person_users_id) REFERENCES consumer(person_users_id);

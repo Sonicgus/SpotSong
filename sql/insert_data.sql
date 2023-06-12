@@ -5,11 +5,11 @@ INSERT INTO administrator (users_id) SELECT id FROM users WHERE username = 'admi
 
 INSERT INTO users (username, password, email) VALUES ('artista', 'artista', 'artista@example.com');
 INSERT INTO person (address, number, users_id) SELECT 'rua fulano de tal', '969 999 999', id FROM users WHERE username = 'artista';
-INSERT INTO artist (artistic_name, label_id, person_users_id) SELECT 'artisteiro', l.id, u.id FROM label l, users u WHERE l.name = 'soni' AND u.username = 'artista';
+INSERT INTO artist (administrator_users_id, artistic_name, label_id, person_users_id) SELECT 1,'artisteiro', l.id, u.id FROM label l, users u WHERE l.name = 'soni' AND u.username = 'artista';
 
 INSERT INTO users (username, password, email) VALUES ('blueday', 'blueday', 'blueday@example.com');
 INSERT INTO person (address, number, users_id) SELECT 'rua fulano de tal', '969 999 999', id FROM users WHERE username = 'blueday';
-INSERT INTO artist (artistic_name, label_id, person_users_id) SELECT 'bluedays', l.id, u.id FROM label l, users u WHERE l.name = 'soni' AND u.username = 'blueday';
+INSERT INTO artist (administrator_users_id, artistic_name, label_id, person_users_id) SELECT 1, 'bluedays', l.id, u.id FROM label l, users u WHERE l.name = 'soni' AND u.username = 'blueday';
 
 INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES ('opa ganda style','2023-06-11 10:30:00','2023-06-11 10:30:00','rap',2,1);
 
