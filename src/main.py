@@ -488,6 +488,140 @@ def add_album():
 
     return flask.jsonify(response)
 
+#
+# POST
+#
+# Add a new comment for a song in a JSON payload
+#
+# To use it, you need to use postman or curl:
+#
+# curl -X POST http://localhost:8080/dbproj/comments/{song_ismn} -H 'Content-Type: application/json' -d '{"comment": "comment_details", "consumer_person_users_id": 1}'
+#
+@app.route('/dbproj/comments/<song_ismn>', methods=['POST'])
+def add_comment(song_ismn):
+    logger.info(f'POST /dbproj/comments/{song_ismn}')
+    payload = flask.request.get_json()
+
+    logger.debug(f'POST /dbproj/comments/{song_ismn} - payload: {payload}')
+
+    # validate every argument
+    if 'comment' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'comment value not in payload'}
+        return flask.jsonify(response)
+
+    if 'token' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'token value not in payload'}
+        return flask.jsonify(response)
+    
+    try:
+        credentials = jwt.decode(payload["token"], "segredo",  algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {'status': StatusCodes['api_error'], 'results': 'token invalido. tente autenticar novamente'}
+        return flask.jsonify(response)
+    
+    if 'user_id' not in credentials:
+        response = {'status': StatusCodes['api_error'], 'results': 'Invalid token'}
+        return flask.jsonify(response)
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    # parameterized queries, good for security and performance
+    statement = 'INSERT INTO comment (text, song_ismn, consumer_person_users_id, comment_id) VALUES (%s, %s, %s, DEFAULT) RETURNING id;'
+    values = (payload['comment'], song_ismn, credentials['user_id'])
+
+    try:
+        cur.execute(statement, values)
+
+        comment_id = cur.fetchone()[0]
+
+        # commit the transaction
+        conn.commit()
+
+        response = {'status': StatusCodes['success'], 'results': f'Inserted comment {comment_id}'}
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f'POST /dbproj/comments/{song_ismn} - error: {error}')
+        response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
+
+        # an error occurred, rollback
+        conn.rollback()
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
+
+#
+# POST
+#
+# Reply to an existing comment for a song in a JSON payload
+#
+# To use it, you need to use postman or curl:
+#
+# curl -X POST http://localhost:8080/dbproj/comments/{song_ismn}/{comment_id} -H 'Content-Type: application/json' -d '{"comment": "comment_details", "consumer_person_users_id": 1}'
+#
+@app.route('/dbproj/comments/<song_ismn>/<comment_id>', methods=['POST'])
+def add_reply(song_ismn, comment_id):
+    logger.info(f'POST /dbproj/comments/{song_ismn}/{comment_id}')
+    payload = flask.request.get_json()
+
+    logger.debug(f'POST /dbproj/comments/{song_ismn}/{comment_id} - payload: {payload}')
+
+    # validate every argument
+    if 'comment' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'comment value not in payload'}
+        return flask.jsonify(response)
+
+    if 'token' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'token value not in payload'}
+        return flask.jsonify(response)
+    
+    try:
+        credentials = jwt.decode(payload["token"], "segredo",  algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {'status': StatusCodes['api_error'], 'results': 'token invalido. tente autenticar novamente'}
+        return flask.jsonify(response)
+    
+    if 'user_id' not in credentials:
+        response = {'status': StatusCodes['api_error'], 'results': 'Invalid token'}
+        return flask.jsonify(response)
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    # parameterized queries, good for security and performance
+    statement = 'INSERT INTO comment (text, song_ismn, consumer_person_users_id, comment_id) VALUES (%s, %s, %s, %s) RETURNING id;'
+    values = (payload['comment'], song_ismn, credentials['user_id'], comment_id)
+
+    try:
+        cur.execute(statement, values)
+
+        reply_id = cur.fetchone()[0]
+
+        # commit the transaction
+        conn.commit()
+
+        response = {'status': StatusCodes['success'], 'results': f'Inserted reply {reply_id}'}
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f'POST /dbproj/comments/{song_ismn}/{comment_id} - error: {error}')
+        response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
+
+        # an error occurred, rollback
+        conn.rollback()
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
+
 if __name__ == '__main__':
     # set up logging
     logging.basicConfig(filename='log_file.log')

@@ -113,6 +113,67 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Add a Comment",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY1ODQ1OTEuNDA3NDY5fQ.dHwWJeoGol18FKDAsbH4XZFiBJqESzlrhFWkIrl_CQc\",\r\n    \"comment\":\"Estou a comentar uma música\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/dbproj/comments/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"dbproj",
+						"comments",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Comment a Comment",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY1ODQ1OTEuNDA3NDY5fQ.dHwWJeoGol18FKDAsbH4XZFiBJqESzlrhFWkIrl_CQc\",\r\n    \"comment\":\"Estou a comentar um comentário\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/dbproj/comments/1/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"dbproj",
+						"comments",
+						"1",
+						"1"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
