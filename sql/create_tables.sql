@@ -36,8 +36,7 @@ CREATE TABLE subscription (
 CREATE TABLE playlist (
 	id			 BIGSERIAL,
 	name			 VARCHAR(512) NOT NULL,
-	is_private		 BOOL NOT NULL,
-	is_top10		 BOOL NOT NULL,
+	is_private		 BOOL,
 	consumer_person_users_id BIGINT NOT NULL,
 	PRIMARY KEY(id)
 );
