@@ -13,7 +13,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"username\": \"quim\",\r\n    \"password\": \"quim\"\r\n}",
+					"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"admin\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -220,6 +220,35 @@
 					"path": [
 						"dbproj",
 						"playlist"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Generate Cards",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE2ODY2MDA4MDcuNTgwMTU2fQ.Is3Je9hY-hUx2DyUoiow8nEf41mo3gEBSpde8T1Gxek\",\r\n    \"number_cards\":\"10\",\r\n    \"card_price\":50\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/dbproj/card",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"dbproj",
+						"card"
 					]
 				}
 			},

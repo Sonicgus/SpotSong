@@ -20,6 +20,7 @@ import psycopg
 import jwt
 import datetime
 import os
+import random
 from dotenv import load_dotenv
 
 app = flask.Flask(__name__)
@@ -875,6 +876,84 @@ def add_playlist():
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"POST /dbproj/playlist - error: {error}")
         response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+
+        # an error occurred, rollback
+        conn.rollback()
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
+
+#
+# POST
+#
+
+@app.route('/dbproj/card', methods=['POST'])
+def generate_cards():
+    logger.info('POST /dbproj/card')
+    payload = flask.request.get_json()
+
+    logger.debug(f'POST /dbproj/card - payload: {payload}')
+
+    # validate every argument:
+    if 'number_cards' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'number_cards value not in payload'}
+        return flask.jsonify(response)
+
+    if 'card_price' not in payload:
+        response = {'status': StatusCodes['api_error'], 'results': 'card_price value not in payload'}
+        return flask.jsonify(response)
+    
+    try:
+        credentials = jwt.decode(payload["token"], secret_key,  algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {'status': StatusCodes['api_error'], 'results': 'token invalido. tente autenticar novamente'}
+        return flask.jsonify(response)
+    
+    if 'user_id' not in credentials:
+        response = {'status': StatusCodes['api_error'], 'results': 'Invalid token'}
+        return flask.jsonify(response)
+    
+    amount = 0
+
+    if payload["card_price"] == 10:
+        amount = 10
+    elif payload["card_price"] == 25:
+        amount = 25
+    elif payload["card_price"] == 50:
+        amount = 50
+    else:
+        response = {'status': StatusCodes['api_error'], 'results': 'Invalid card_price'}
+        return flask.jsonify(response)
+
+    
+    conn = db_connection()
+    cur = conn.cursor()
+
+    chars = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890"
+    
+    try:
+        cards = []
+        for i in range(int(payload['number_cards'])):
+            statement = 'INSERT INTO card (code, expire, amount, type, administrator_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;'
+            values = (''.join(random.choices(chars, k=16)), datetime.datetime.now() + datetime.timedelta(days=1), amount, amount, credentials['user_id'])
+
+            cur.execute(statement, values)
+            card_id = cur.fetchone()[0]
+            cards.append(card_id)
+
+        # commit the transaction
+        conn.commit()
+
+        response = {'status': StatusCodes['success'], 'results': cards}
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f'POST /dbproj/card - error: {error}')
+        response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
 
         # an error occurred, rollback
         conn.rollback()
