@@ -100,8 +100,8 @@ CREATE TABLE view (
 	PRIMARY KEY(id,song_ismn,consumer_person_users_id)
 );
 
-CREATE TABLE element (
-	position	 BIGSERIAL NOT NULL,
+CREATE TABLE playlist_song (
+	position	 BIGINT NOT NULL,
 	song_ismn	 BIGINT NOT NULL,
 	playlist_id BIGINT NOT NULL
 );
@@ -144,9 +144,8 @@ ALTER TABLE album ADD CONSTRAINT album_fk2 FOREIGN KEY (label_id) REFERENCES lab
 ALTER TABLE card ADD CONSTRAINT card_fk1 FOREIGN KEY (administrator_users_id) REFERENCES administrator(users_id);
 ALTER TABLE view ADD CONSTRAINT view_fk1 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
 ALTER TABLE view ADD CONSTRAINT view_fk2 FOREIGN KEY (consumer_person_users_id) REFERENCES consumer(person_users_id);
-ALTER TABLE element ADD UNIQUE (position);
-ALTER TABLE element ADD CONSTRAINT element_fk1 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
-ALTER TABLE element ADD CONSTRAINT element_fk2 FOREIGN KEY (playlist_id) REFERENCES playlist(id);
+ALTER TABLE playlist_song ADD CONSTRAINT playlist_song_fk1 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
+ALTER TABLE playlist_song ADD CONSTRAINT playlist_song_fk2 FOREIGN KEY (playlist_id) REFERENCES playlist(id);
 ALTER TABLE card_subscription ADD CONSTRAINT card_subscription_fk1 FOREIGN KEY (card_id) REFERENCES card(id);
 ALTER TABLE card_subscription ADD CONSTRAINT card_subscription_fk2 FOREIGN KEY (subscription_id) REFERENCES subscription(id);
 ALTER TABLE song_album ADD CONSTRAINT song_album_fk1 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
