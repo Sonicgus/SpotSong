@@ -744,7 +744,7 @@ def add_comment(song_ismn):
     cur = conn.cursor()
 
     # parameterized queries, good for security and performance
-    statement = "INSERT INTO comment (text, song_ismn, consumer_person_users_id, comment_id) VALUES (%s, %s, %s, DEFAULT) RETURNING id;"
+    statement = "INSERT INTO comment (text, song_ismn, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
     values = (payload["comment"], song_ismn, credentials["user_id"])
 
     try:
@@ -762,6 +762,118 @@ def add_comment(song_ismn):
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"POST /dbproj/comments/{song_ismn} - error: {error}")
+        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+
+        # an error occurred, rollback
+        conn.rollback()
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
+
+#
+# POST
+#
+# Add a new playlist in a JSON payload
+#
+# To use it, you need to use postman or curl:
+#
+# curl -X POST http://localhost:8080/dbproj/playlist -H 'Content-Type: application/json' -d '{"comment": "comment_details", "consumer_person_users_id": 1}'
+#
+@app.route("/dbproj/playlist", methods=["POST"])
+def add_playlist():
+    logger.info(f"POST /dbproj/playlist")
+    payload = flask.request.get_json()
+
+    logger.debug(f"POST /dbproj/playlist - payload: {payload}")
+
+    # validate every argument
+    if "playlist_name" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "playlist_name value not in payload",
+        }
+        return flask.jsonify(response)
+    
+    if "visibility" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "visibility value not in payload",
+        }
+        return flask.jsonify(response)
+    
+    if "songs" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "songs value not in payload",
+        }
+        return flask.jsonify(response)
+
+    if "token" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token value not in payload",
+        }
+        return flask.jsonify(response)
+
+    try:
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token invalido. tente autenticar novamente",
+        }
+        return flask.jsonify(response)
+
+    if "user_id" not in credentials:
+        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        return flask.jsonify(response)
+    
+    visibilidade = ""
+
+    if payload["visibility"] == "private":
+        visibilidade = "true"
+    elif payload["visibility"] == "public":
+        visibilidade = "false"
+    else:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token value not in payload",
+        }
+        return flask.jsonify(response)
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    # parameterized queries, good for security and performance
+    statement = "INSERT INTO playlist (name, is_private, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
+    values = (payload["playlist_name"], visibilidade, credentials["user_id"])
+
+    try:
+        cur.execute(statement, values)
+
+        playlist_id = cur.fetchone()[0]
+
+        for p in range(1,1+len(payload["songs"])):
+            statement = "INSERT INTO playlist_song (position, song_ismn, playlist_id) VALUES (%s, %s, %s);"
+            values = (p, payload["songs"][p-1], playlist_id)
+
+            cur.execute(statement, values)
+
+        # commit the transaction
+        conn.commit()
+
+        response = {
+            "status": StatusCodes["success"],
+            "results": f"Inserted playlist {playlist_id}",
+        }
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f"POST /dbproj/playlist - error: {error}")
         response = {"status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
