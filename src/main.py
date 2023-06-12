@@ -298,16 +298,40 @@ def search_song(keyword):
     cur = conn.cursor()
 
     # parameterized queries, good for security and performance
-    statement = f"SELECT s.ismn AS song_id, s.title AS song_title, a.artistic_name AS artist_name, al.id AS album_id FROM song s INNER JOIN artist_song sa ON s.ismn = sa.song_ismn INNER JOIN artist a ON sa.artist_person_users_id = a.person_users_id LEFT JOIN song_album als ON s.ismn = als.song_ismn LEFT JOIN album al ON als.album_id = al.id WHERE s.title LIKE '%a%'; "
+    statement = f"SELECT s.ismn AS song_id, s.title AS song_title, a.artistic_name AS artist_name, al.id AS album_id FROM song s INNER JOIN artist_song sa ON s.ismn = sa.song_ismn INNER JOIN artist a ON sa.artist_person_users_id = a.person_users_id LEFT JOIN song_album als ON s.ismn = als.song_ismn LEFT JOIN album al ON als.album_id = al.id WHERE s.title LIKE '%{keyword}%'; "
 
     try:
         cur.execute(statement)
 
         all = cur.fetchall()
 
-        print(all[17])
 
-        response = {'status': StatusCodes['success'], 'results': f'Inserted song {all}'}
+        dicisongs={}
+        albuns=[]
+
+        for element in all:
+            song_id = element[0]
+            if song_id in dicisongs:
+                dicisongs[song_id]["artists"].append(element[2])
+            else:
+                dicisongs[song_id] = {"song_title": element[1], "artists": [element[2]]}
+
+            album = element[3]
+
+            if album is not None:
+                if album not in albuns:
+                    albuns.append(album)
+
+        results = []
+
+        for song_id, song_info in dicisongs.items():
+            song = {"title": song_info["song_title"], "artists": song_info["artists"]}
+            results.append(song)
+
+        results.append({"albuns": albuns})
+
+        response = {'status': StatusCodes['success'], 'results': results}
+
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f'GET /dbproj/song/{keyword} - error: {error}')
