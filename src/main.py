@@ -23,6 +23,28 @@ import os
 import random
 from dotenv import load_dotenv
 
+load_dotenv()
+
+# get env vars
+secret_key = os.getenv("SECRET_KEY")
+userdb = os.getenv("USER")
+passdb = os.getenv("PASSWORD")
+hostdb = os.getenv("HOSTDB")
+portdb = os.getenv("PORTDB")
+namedb = os.getenv("NAMEDB")
+
+# set up logging
+logging.basicConfig(filename="log_file.log")
+logger = logging.getLogger("logger")
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# create formatter
+formatter = logging.Formatter("%(asctime)s [%(levelname)s]:  %(message)s", "%H:%M:%S")
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
 app = flask.Flask(__name__)
 
 StatusCodes = {"success": 200, "api_error": 400, "internal_error": 500}
@@ -981,30 +1003,8 @@ def generate_cards():
 
 
 if __name__ == "__main__":
-
-    load_dotenv()
-    secret_key = os.getenv("SECRET_KEY")
-    userdb = os.getenv("USER")
-    passdb = os.getenv("PASSWORD")
-    hostdb = os.getenv("HOSTDB")
-    portdb = os.getenv("PORTDB")
-    namedb = os.getenv("NAMEDB")
-
-    # set up logging
-    logging.basicConfig(filename="log_file.log")
-    logger = logging.getLogger("logger")
-    logger.setLevel(logging.DEBUG)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-
-    # create formatter
-    formatter = logging.Formatter(
-        "%(asctime)s [%(levelname)s]:  %(message)s", "%H:%M:%S"
-    )
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-
     host = "127.0.0.1"
     port = 8080
+
     logger.info(f"API online: http://{host}:{port}/dbproj")
     app.run(host=host, debug=True, threaded=True, port=port)
