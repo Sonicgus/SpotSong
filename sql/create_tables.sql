@@ -25,7 +25,7 @@ CREATE TABLE administrator (
 
 CREATE TABLE subscription (
 	id			 BIGSERIAL,
-	plan			 INTEGER,
+	plan			 INTEGER NOT NULL,
 	init_date		 TIMESTAMP NOT NULL,
 	end_date		 TIMESTAMP NOT NULL,
 	purchase_date		 TIMESTAMP NOT NULL,
@@ -84,10 +84,11 @@ CREATE TABLE album (
 );
 
 CREATE TABLE card (
-	id			 VARCHAR(16),
-	expire		 TIMESTAMP,
-	amount		 INTEGER,
-	type			 INTEGER,
+	id			 BIGSERIAL,
+	code			 VARCHAR(16) NOT NULL,
+	expire		 TIMESTAMP NOT NULL,
+	amount		 INTEGER NOT NULL,
+	type			 INTEGER NOT NULL,
 	administrator_users_id BIGINT NOT NULL,
 	PRIMARY KEY(id)
 );
@@ -101,13 +102,15 @@ CREATE TABLE view (
 );
 
 CREATE TABLE playlist_song (
+	id		 BIGSERIAL,
 	position	 BIGINT NOT NULL,
 	song_ismn	 BIGINT NOT NULL,
-	playlist_id BIGINT NOT NULL
+	playlist_id BIGINT NOT NULL,
+	PRIMARY KEY(id)
 );
 
 CREATE TABLE card_subscription (
-	card_id	 VARCHAR(16),
+	card_id	 BIGINT,
 	subscription_id BIGINT,
 	PRIMARY KEY(card_id,subscription_id)
 );
@@ -141,6 +144,7 @@ ALTER TABLE song ADD CONSTRAINT song_fk2 FOREIGN KEY (label_id) REFERENCES label
 ALTER TABLE person ADD CONSTRAINT person_fk1 FOREIGN KEY (users_id) REFERENCES users(id);
 ALTER TABLE album ADD CONSTRAINT album_fk1 FOREIGN KEY (artist_person_users_id) REFERENCES artist(person_users_id);
 ALTER TABLE album ADD CONSTRAINT album_fk2 FOREIGN KEY (label_id) REFERENCES label(id);
+ALTER TABLE card ADD UNIQUE (code);
 ALTER TABLE card ADD CONSTRAINT card_fk1 FOREIGN KEY (administrator_users_id) REFERENCES administrator(users_id);
 ALTER TABLE view ADD CONSTRAINT view_fk1 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
 ALTER TABLE view ADD CONSTRAINT view_fk2 FOREIGN KEY (consumer_person_users_id) REFERENCES consumer(person_users_id);
