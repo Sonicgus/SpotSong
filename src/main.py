@@ -304,6 +304,9 @@ def search_song(keyword):
         cur.execute(statement)
 
         all = cur.fetchall()
+
+        print(all[17])
+
         response = {'status': StatusCodes['success'], 'results': f'Inserted song {all}'}
 
     except (Exception, psycopg.DatabaseError) as error:
