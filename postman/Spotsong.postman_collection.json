@@ -42,7 +42,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE2ODY1NjQ4MzguMDAwMDV9.IR4Bu0bsH4C_nwLrrkwByEQwz6TxnrxA5Pj0w8OJRgU\",\r\n    \"song_name\":\"song_name\",\r\n    \"duration\":\"2023-06-11 10:30:00\",\r\n    \"genre\":\"genre\",\r\n    \"release_date\":\"2023-06-11 10:30:00\",\r\n    \"publisher_id\":1,\r\n    \"other_artists\":[3]\r\n}",
+					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE2ODY1NjU4NzMuODg5MDI4fQ.sxFcugk16cQ8UMqb547oregpL6IPlo5M2EeUhwSEGH0\",\r\n    \"song_name\":\"song_name\",\r\n    \"duration\":\"2023-06-11 10:30:00\",\r\n    \"genre\":\"genre\",\r\n    \"release_date\":\"2023-06-11 10:30:00\",\r\n    \"publisher_id\":1,\r\n    \"other_artists\":[3]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -70,7 +70,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8080/dbproj/song/keyword",
+					"raw": "http://localhost:8080/dbproj/song/song",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -79,7 +79,7 @@
 					"path": [
 						"dbproj",
 						"song",
-						"keyword"
+						"song"
 					]
 				}
 			},
@@ -92,7 +92,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE2ODY1NjYyNTUuMTI2MTc5fQ.No2shAn5GzpJz3Ot9pWs5PPApeSTNG841UokQ89OFbs\",\r\n    \"release_date\":\"2023-06-11 10:30:00\",\r\n    \"publisher_id\":1,\r\n    \"album_name\":\"123\",\r\n    \"songs\":[{\"song_id\":5},{\"song_name\":\"song_name\",\r\n    \"duration\":\"2023-06-11 10:30:00\",\r\n    \"genre\":\"genre\",\r\n    \"release_date\":\"2023-06-11 10:30:00\",\r\n    \"publisher_id\":1,\r\n    \"other_artists\":[3]}]\r\n}",
+					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE2ODY1NjY5NDAuMjYzMjM3fQ.udGFan0cepLDAWRETOsR9za21lIw4zxozZDTijPnBws\",\r\n    \"release_date\":\"2023-06-11 10:30:00\",\r\n    \"publisher_id\":1,\r\n    \"album_name\":\"123\",\r\n    \"songs\":[{\"song_id\":5},{\"song_name\":\"song_name\",\r\n    \"duration\":\"2023-06-11 10:30:00\",\r\n    \"genre\":\"genre\",\r\n    \"release_date\":\"2023-06-11 10:30:00\",\r\n    \"publisher_id\":1,\r\n    \"other_artists\":[3]}]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
