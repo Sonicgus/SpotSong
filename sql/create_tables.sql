@@ -138,10 +138,10 @@ ALTER TABLE playlist ADD CONSTRAINT playlist_fk1 FOREIGN KEY (consumer_person_us
 ALTER TABLE comment ADD CONSTRAINT comment_fk1 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
 ALTER TABLE comment ADD CONSTRAINT comment_fk2 FOREIGN KEY (consumer_person_users_id) REFERENCES consumer(person_users_id);
 ALTER TABLE comment ADD CONSTRAINT comment_fk3 FOREIGN KEY (comment_id, comment_song_ismn, comment_consumer_person_users_id) REFERENCES comment(id, song_ismn, consumer_person_users_id);
+ALTER TABLE label ADD UNIQUE (name);
 ALTER TABLE song ADD CONSTRAINT song_fk1 FOREIGN KEY (artist_person_users_id) REFERENCES artist(person_users_id);
 ALTER TABLE song ADD CONSTRAINT song_fk2 FOREIGN KEY (label_id) REFERENCES label(id);
 ALTER TABLE person ADD CONSTRAINT person_fk1 FOREIGN KEY (users_id) REFERENCES users(id);
-ALTER TABLE album ADD UNIQUE (title);
 ALTER TABLE album ADD CONSTRAINT album_fk1 FOREIGN KEY (artist_person_users_id) REFERENCES artist(person_users_id);
 ALTER TABLE album ADD CONSTRAINT album_fk2 FOREIGN KEY (label_id) REFERENCES label(id);
 ALTER TABLE card ADD CONSTRAINT card_fk1 FOREIGN KEY (administrator_users_id) REFERENCES administrator(users_id);
