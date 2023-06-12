@@ -70,7 +70,7 @@ CREATE TABLE song (
 
 CREATE TABLE person (
 	address	 VARCHAR(512) NOT NULL,
-	number	 VARCHAR(512) NOT NULL,
+	contact	 VARCHAR(512) NOT NULL,
 	users_id BIGINT,
 	PRIMARY KEY(users_id)
 );
