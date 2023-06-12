@@ -47,9 +47,9 @@ CREATE TABLE comment (
 	text				 VARCHAR(512),
 	song_ismn			 BIGINT,
 	consumer_person_users_id	 BIGINT,
-	comment_id			 BIGINT NOT NULL,
-	comment_song_ismn		 BIGINT NOT NULL,
-	comment_consumer_person_users_id BIGINT NOT NULL,
+	comment_id			 BIGINT,
+	comment_song_ismn		 BIGINT,
+	comment_consumer_person_users_id BIGINT,
 	PRIMARY KEY(id,song_ismn,consumer_person_users_id)
 );
 
