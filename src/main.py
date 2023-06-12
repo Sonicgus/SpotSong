@@ -1002,9 +1002,12 @@ def generate_cards():
     return flask.jsonify(response)
 
 
-if __name__ == "__main__":
+def main():
     host = "127.0.0.1"
     port = 8080
 
     logger.info(f"API online: http://{host}:{port}/dbproj")
     app.run(host=host, debug=True, threaded=True, port=port)
+    
+if __name__ == "__main__":
+    main()
