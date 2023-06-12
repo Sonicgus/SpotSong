@@ -421,7 +421,7 @@ def add_album():
         for song in payload['songs']:
             song_id = 0
             if 'song_id' in song:
-                song_id = song[song_id]
+                song_id = song['song_id']
                 
             else:                
                 statement = 'INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn;'
