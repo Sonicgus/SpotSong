@@ -1,0 +1,118 @@
+{
+	"info": {
+		"_postman_id": "1e1610ce-99bc-4288-863c-1665e7ca4268",
+		"name": "Spotsong",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20862369"
+	},
+	"item": [
+		{
+			"name": "User Authentication",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"artista\",\r\n    \"password\":\"artista\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/dbproj/user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"dbproj",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Song",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE2ODY1NTY3ODQuMzg5MTQ2fQ.2kgRzjOA1MQWyhIUyEDmTJQPhHO1zd-itmRJPum7j_s\",\r\n    \"song_name\":\"song_name\",\r\n    \"duration\":\"2023-06-11 10:30:00\",\r\n    \"genre\":\"genre\",\r\n    \"release_date\":\"2023-06-11 10:30:00\",\r\n    \"publisher_id\":1,\r\n    \"other_artists\":[4]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/dbproj/song",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"dbproj",
+						"song"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search Song",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/dbproj/song/keyword",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"dbproj",
+						"song",
+						"keyword"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Album",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE2ODY1NjI5MTcuMjE5Mjg3fQ.pg3563gKirCBQvXJ1b-d7VXcQK9Zx4OsGSinvx7VCys\",\r\n    \"release_date\":\"2023-06-11 10:30:00\",\r\n    \"publisher_id\":1,\r\n    \"album_name\":\"123\",\r\n    \"songs\":[{\"song_id\":1}]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/dbproj/album",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"dbproj",
+						"album"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
