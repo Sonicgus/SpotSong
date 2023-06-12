@@ -21,7 +21,6 @@ import jwt
 import datetime
 import os
 from dotenv import load_dotenv
-load_dotenv()
 
 app = flask.Flask(__name__)
 
@@ -626,6 +625,10 @@ def add_reply(song_ismn, comment_id):
 
 
 if __name__ == '__main__':
+
+    load_dotenv()
+    secret_key = os.getenv('SECRET_KEY')
+
     # set up logging
     logging.basicConfig(filename='log_file.log')
     logger = logging.getLogger('logger')
