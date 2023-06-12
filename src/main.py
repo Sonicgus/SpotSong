@@ -267,6 +267,53 @@ def add_song():
     return flask.jsonify(response)
 
 
+
+#
+# GET
+#
+# Search a song in a JSON payload
+#
+# To use it, you need to use postman or curl:
+#
+# curl -X GET http://localhost:8080/dbproj/song/{keyword} -H 'Content-Type: application/json' -d
+#
+@app.route('/dbproj/song/<keyword>', methods=['GET'])
+def search_song(keyword):
+    logger.info('GET /dbproj/song/{keyword}')
+
+    logger.debug(f'GET /dbproj/song/{keyword}')
+
+    print(keyword)
+    
+    conn = db_connection()
+    cur = conn.cursor()
+
+    # parameterized queries, good for security and performance
+    statement = 'SELECT * FROM song WHERE name = keyword'
+    values = (keyword)
+
+    try:
+        cur.execute(statement, values)
+
+        song_id = cur.fetchall()
+
+        # commit the transaction
+        conn.commit()
+        response = {'status': StatusCodes['success'], 'results': f'Inserted song {song_id}'}
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f'GET /dbproj/song/{keyword} - error: {error}')
+        response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
+
+        # an error occurred, rollback
+        conn.rollback()
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
 if __name__ == '__main__':
     # set up logging
     logging.basicConfig(filename='log_file.log')
