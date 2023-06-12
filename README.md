@@ -1,7 +1,7 @@
 # SpotSong - Music Streaming Platform - DB Project 2023
 
 ### Tree do projeto:
-.)<br/>
+.<br/>
 ├─── docs -> pasta que contém pdfs<br/>
 ├─── onda -> pasta que contém projeto ONDA exportado em json<br/>
 ├─── postman -> pasta que contém coleção com todos os requests para testar a app<br/>
