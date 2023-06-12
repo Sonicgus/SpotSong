@@ -280,7 +280,7 @@ def add_song():
         return flask.jsonify(response)
 
     try:
-        credentials = jwt.decode(payload["token"], "segredo", algorithms="HS256")
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
         response = {
@@ -415,6 +415,8 @@ def search_song(keyword):
     return flask.jsonify(response)
 
 
+
+
 #
 # POST
 #
@@ -475,7 +477,7 @@ def add_album():
         return flask.jsonify(response)
 
     try:
-        credentials = jwt.decode(payload["token"], "segredo", algorithms="HS256")
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
         response = {
@@ -657,7 +659,7 @@ def add_comment(song_ismn):
         return flask.jsonify(response)
 
     try:
-        credentials = jwt.decode(payload["token"], "segredo", algorithms="HS256")
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
         response = {
