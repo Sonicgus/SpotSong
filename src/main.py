@@ -37,9 +37,9 @@ def db_connection():
     db = psycopg.connect(
         user=userdb,
         password=passdb,
-        host="127.0.0.1",
-        port="5432",
-        dbname="dbspotsong",
+        host=hostdb,
+        port=portdb,
+        dbname=namedb,
     )
 
     return db
@@ -986,6 +986,9 @@ if __name__ == "__main__":
     secret_key = os.getenv("SECRET_KEY")
     userdb = os.getenv("USER")
     passdb = os.getenv("PASSWORD")
+    hostdb = os.getenv("HOSTDB")
+    portdb = os.getenv("PORTDB")
+    namedb = os.getenv("NAMEDB")
 
     # set up logging
     logging.basicConfig(filename="log_file.log")
