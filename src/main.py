@@ -19,6 +19,9 @@ import logging
 import psycopg
 import jwt
 import datetime
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 app = flask.Flask(__name__)
 
@@ -169,7 +172,7 @@ def authenticate_user():
             response = {'status': StatusCodes['success'],
                         'results': jwt.encode(
                             {'user_id': row[0], 'exp': (
-                                    datetime.datetime.now() + datetime.timedelta(minutes=5)).timestamp()}, "segredo",
+                                    datetime.datetime.now() + datetime.timedelta(minutes=5)).timestamp()}, secret_key,
                             algorithm="HS256")}
 
     except (Exception, psycopg.DatabaseError) as error:
