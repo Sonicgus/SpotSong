@@ -442,7 +442,13 @@ def detail_artist(artist_id):
 
         all = cur.fetchall()
 
-        print(all)
+        if len(all) == 0:
+            response = {
+                "status": StatusCodes["api_error"],
+                "errors": 'Nothing foud with that user id',
+            }
+            conn.close()
+            return flask.jsonify(response)
 
         artistic_name = all[0][0]
         songs = []
