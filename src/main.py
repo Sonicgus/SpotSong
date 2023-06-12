@@ -300,7 +300,7 @@ def search_song(keyword):
     cur = conn.cursor()
 
     # parameterized queries, good for security and performance
-    statement = 'SELECT song.ismn, song.title, artist.artistic_name FROM song RIGHT JOIN artist_song ON song.ismn = artist_song.song_ismn RIGHT JOIN artist ON artist_song.artist_person_users_id = artist.person_users_id;'
+    statement = "SELECT song.ismn, song.title, artist.artistic_name FROM song RIGHT JOIN artist_song ON song.ismn = artist_song.song_ismn RIGHT JOIN artist ON artist_song.artist_person_users_id = artist.person_users_id WHERE song.title LIKE '%' || '%s' || '%';"
     values = (keyword)
 
     try:
