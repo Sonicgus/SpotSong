@@ -35,8 +35,8 @@ StatusCodes = {"success": 200, "api_error": 400, "internal_error": 500}
 
 def db_connection():
     db = psycopg.connect(
-        user="spotsong",
-        password="spotsong",
+        user=userdb,
+        password=passdb,
         host="127.0.0.1",
         port="5432",
         dbname="dbspotsong",
@@ -101,6 +101,8 @@ def add_user():
             "results": "password value not in payload",
         }
         return flask.jsonify(response)
+    
+
 
     # parameterized queries, good for security and performance
     statement = (
@@ -969,6 +971,8 @@ if __name__ == "__main__":
 
     load_dotenv()
     secret_key = os.getenv("SECRET_KEY")
+    userdb = os.getenv("USER")
+    passdb = os.getenv("PASSWORD")
 
     # set up logging
     logging.basicConfig(filename="log_file.log")
