@@ -95,7 +95,7 @@ def add_user():
 
     # parameterized queries, good for security and performance
     statement = 'INSERT INTO users (username, email, password) VALUES (%s, %s, %s) RETURNING id'
-    values = (payload['username'], payload['email'], payload['password'])
+    values = (payload['username'], payload['email'], payload['password'],)
 
     conn = db_connection()
     cur = conn.cursor()
@@ -151,7 +151,7 @@ def authenticate_user():
 
     # parameterized queries, good for security and performance
     statement = 'SELECT id FROM users WHERE username = %s and password = %s'
-    values = (payload['username'], payload['password'])
+    values = (payload['username'], payload['password'],)
 
     conn = db_connection()
     cur = conn.cursor()
@@ -239,7 +239,7 @@ def add_song():
 
     # parameterized queries, good for security and performance
     statement = 'INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn;'
-    values = (payload['song_name'], payload['release_date'], payload['duration'], payload['genre'], credentials['user_id'], payload['publisher_id'])
+    values = (payload['song_name'], payload['release_date'], payload['duration'], payload['genre'], credentials['user_id'], payload['publisher_id'],)
 
     try:
         cur.execute(statement, values)
@@ -247,14 +247,14 @@ def add_song():
         song_id = cur.fetchone()[0]
 
         statement = 'INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s)'
-        values = (credentials['user_id'], song_id)
+        values = (credentials['user_id'], song_id,)
 
         cur.execute(statement, values)
 
         if 'other_artists' in payload:
             for artist_id in payload['other_artists']:
                 statement = 'INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s)'
-                values = (artist_id, song_id)
+                values = (artist_id, song_id,)
 
                 cur.execute(statement, values)
 
@@ -292,22 +292,19 @@ def add_song():
 def search_song(keyword):
     logger.info('GET /dbproj/song/{keyword}')
 
-    logger.debug(f'GET /dbproj/song/{keyword}')
-
-    print(keyword)
+    logger.debug('GET /dbproj/song/{keyword}')
     
     conn = db_connection()
     cur = conn.cursor()
 
     # parameterized queries, good for security and performance
-    statement = "SELECT song.ismn, song.title, artist.artistic_name FROM song RIGHT JOIN artist_song ON song.ismn = artist_song.song_ismn RIGHT JOIN artist ON artist_song.artist_person_users_id = artist.person_users_id WHERE song.title LIKE '%' || '%s' || '%';"
-    values = (keyword)
+    statement = f"SELECT song.ismn, song.title, artist.artistic_name FROM song INNER JOIN artist_song ON song.ismn = artist_song.song_ismn INNER JOIN artist ON artist_song.artist_person_users_id = artist.person_users_id WHERE song.title LIKE CONCAT('%' || '{keyword}' || '%')"
 
     try:
-        cur.execute(statement, values)
+        cur.execute(statement)
 
-        song_id = cur.fetchall()
-        response = {'status': StatusCodes['success'], 'results': f'Inserted song {song_id}'}
+        all = cur.fetchall()
+        response = {'status': StatusCodes['success'], 'results': f'Inserted song {all}'}
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f'GET /dbproj/song/{keyword} - error: {error}')
@@ -401,7 +398,7 @@ def add_album():
             if 'song_id' in song:
                 #  validate if the artist is associated with the selected existing songs
                 statement = 'SELECT artist_person_users_id FROM artist_song WHERE song_ismn = %s AND artist_person_users_id = %s'
-                values = (song['song_id'],credentials['user_id'])
+                values = (song['song_id'],credentials['user_id'],)
 
                 cur.execute(statement, values)
                 if cur.fetchone()[0] is None:
@@ -412,7 +409,7 @@ def add_album():
 
         # parameterized queries, good for security and performance
         statement = 'INSERT INTO album (title, release_date, artist_person_users_id, label_id) VALUES (%s,%s,%s,%s) RETURNING id;'
-        values = (payload['album_name'], payload['release_date'], credentials['user_id'], payload['publisher_id'])
+        values = (payload['album_name'], payload['release_date'], credentials['user_id'], payload['publisher_id'],)
 
         cur.execute(statement, values)
 
@@ -425,24 +422,24 @@ def add_album():
                 
             else:                
                 statement = 'INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn;'
-                values = (song['song_name'], song['release_date'], song['duration'], song['genre'], credentials['user_id'], song['publisher_id'])
+                values = (song['song_name'], song['release_date'], song['duration'], song['genre'], credentials['user_id'], song['publisher_id'],)
                 cur.execute(statement, values)
 
                 song_id = cur.fetchone()[0]
 
                 statement = 'INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s);'
-                values = (credentials['user_id'], song_id)
+                values = (credentials['user_id'], song_id,)
 
                 cur.execute(statement, values)
                 
                 if 'other_artists' in song:
                     for artist_id in song['other_artists']:
                         statement = 'INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s);'
-                        values = (artist_id, song_id)
+                        values = (artist_id, song_id,)
                         cur.execute(statement, values)
 
             statement = 'INSERT INTO song_album (song_ismn, album_id) VALUES (%s,%s);'
-            values = (song_id, album_id)
+            values = (song_id, album_id,)
             cur.execute(statement, values)
 
 
