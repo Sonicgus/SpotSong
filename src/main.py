@@ -222,9 +222,6 @@ def add_song():
     if 'publisher_id' not in payload:
         response = {'status': StatusCodes['api_error'], 'results': 'publisher_id value not in payload'}
         return flask.jsonify(response)
-    
-    if 'other_artists' in payload:
-        print("other artists")
 
     try:
         credentials = jwt.decode(payload["token"], "segredo",  algorithms="HS256")
@@ -241,7 +238,7 @@ def add_song():
     cur = conn.cursor()
 
     # parameterized queries, good for security and performance
-    statement = 'INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn'
+    statement = 'INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn;'
     values = (payload['song_name'], payload['release_date'], payload['duration'], payload['genre'], credentials['user_id'], payload['publisher_id'])
 
     try:
@@ -249,8 +246,22 @@ def add_song():
 
         song_id = cur.fetchone()[0]
 
+        statement = 'INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s)'
+        values = (credentials['user_id'], song_id)
+
+        cur.execute(statement, values)
+
+        if 'other_artists' in payload:
+            for artist_id in payload['other_artists']:
+                statement = 'INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s)'
+                values = (artist_id, song_id)
+
+                cur.execute(statement, values)
+
+
         # commit the transaction
         conn.commit()
+
         response = {'status': StatusCodes['success'], 'results': f'Inserted song {song_id}'}
 
     except (Exception, psycopg.DatabaseError) as error:
@@ -289,24 +300,18 @@ def search_song(keyword):
     cur = conn.cursor()
 
     # parameterized queries, good for security and performance
-    statement = 'SELECT * FROM song WHERE name = keyword'
+    statement = 'SELECT song.ismn, song.title, artist.artistic_name FROM song RIGHT JOIN artist_song ON song.ismn = artist_song.song_ismn RIGHT JOIN artist ON artist_song.artist_person_users_id = artist.person_users_id;'
     values = (keyword)
 
     try:
         cur.execute(statement, values)
 
         song_id = cur.fetchall()
-
-        # commit the transaction
-        conn.commit()
         response = {'status': StatusCodes['success'], 'results': f'Inserted song {song_id}'}
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f'GET /dbproj/song/{keyword} - error: {error}')
         response = {'status': StatusCodes['internal_error'], 'errors': str(error)}
-
-        # an error occurred, rollback
-        conn.rollback()
 
     finally:
         if conn is not None:
