@@ -415,6 +415,68 @@ def search_song(keyword):
     return flask.jsonify(response)
 
 
+#
+# GET
+#
+# Search a song in a JSON payload
+#
+# To use it, you need to use postman or curl:
+#
+# curl -X GET http://localhost:8080/dbproj/artist_info/artist_id -H 'Content-Type: application/json' -d
+#
+@app.route("/dbproj/artist_info/<artist_id>", methods=["GET"])
+def detail_artist(artist_id):
+    logger.info("GET /dbproj/song/{artist_id}")
+
+    logger.debug("GET /dbproj/song/{artist_id}")
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    # parameterized queries, good for security and performance
+    statement = 'SELECT artist.artistic_name, song.ismn, album.id FROM artist JOIN artist_song ON artist_song.artist_person_users_id = artist.person_users_id JOIN song ON song.ismn = artist_song.song_ismn JOIN song_album ON song_album.song_ismn = song.ismn JOIN album ON album.id = song_album.album_id WHERE artist.person_users_id = %s;'
+    values = (artist_id,)
+    
+    try:
+        cur.execute(statement, values)
+
+        all = cur.fetchall()
+
+        print(all)
+
+        artistic_name = all[0][0]
+        songs = []
+        albuns = []
+
+        for element in all:
+            song_id = element[1]
+            album_id = element[2]
+
+            if song_id not in songs:
+                songs.append(song_id)
+
+            if album_id not in albuns:
+                albuns.append(album_id)
+
+                results = []
+
+        results.append({"name":artistic_name})
+
+        results.append({"songs":songs})
+
+        results.append({"albuns": albuns})
+
+        response = {"status": StatusCodes["success"], "results": results}
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f"GET /dbproj/song/{artist_id} - error: {error}")
+        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
 
 
 #
