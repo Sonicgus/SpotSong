@@ -298,7 +298,7 @@ def search_song(keyword):
     cur = conn.cursor()
 
     # parameterized queries, good for security and performance
-    statement = f"SELECT song.ismn, song.title, artist.artistic_name FROM song INNER JOIN artist_song ON song.ismn = artist_song.song_ismn INNER JOIN artist ON artist_song.artist_person_users_id = artist.person_users_id WHERE song.title LIKE CONCAT('%' || '{keyword}' || '%')"
+    statement = f"SELECT s.ismn AS song_id, s.title AS song_title, a.artistic_name AS artist_name, al.id AS album_id FROM song s INNER JOIN artist_song sa ON s.ismn = sa.song_ismn INNER JOIN artist a ON sa.artist_person_users_id = a.person_users_id LEFT JOIN song_album als ON s.ismn = als.song_ismn LEFT JOIN album al ON als.album_id = al.id WHERE s.title LIKE '%a%'; "
 
     try:
         cur.execute(statement)
