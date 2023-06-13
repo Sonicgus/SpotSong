@@ -111,8 +111,9 @@ CREATE TABLE playlist_song (
 
 CREATE TABLE history_card (
 	cost	 INTEGER,
-	card_id	 BIGINT NOT NULL,
-	purchase_id BIGINT NOT NULL
+	purchase_id BIGINT,
+	card_id	 BIGINT,
+	PRIMARY KEY(purchase_id,card_id)
 );
 
 CREATE TABLE purchase (
@@ -158,8 +159,8 @@ ALTER TABLE view ADD CONSTRAINT view_fk1 FOREIGN KEY (song_ismn) REFERENCES song
 ALTER TABLE view ADD CONSTRAINT view_fk2 FOREIGN KEY (consumer_person_users_id) REFERENCES consumer(person_users_id);
 ALTER TABLE playlist_song ADD CONSTRAINT playlist_song_fk1 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
 ALTER TABLE playlist_song ADD CONSTRAINT playlist_song_fk2 FOREIGN KEY (playlist_id) REFERENCES playlist(id);
-ALTER TABLE history_card ADD CONSTRAINT history_card_fk1 FOREIGN KEY (card_id) REFERENCES card(id);
-ALTER TABLE history_card ADD CONSTRAINT history_card_fk2 FOREIGN KEY (purchase_id) REFERENCES purchase(id);
+ALTER TABLE history_card ADD CONSTRAINT history_card_fk1 FOREIGN KEY (purchase_id) REFERENCES purchase(id);
+ALTER TABLE history_card ADD CONSTRAINT history_card_fk2 FOREIGN KEY (card_id) REFERENCES card(id);
 ALTER TABLE purchase ADD UNIQUE (subscription_id);
 ALTER TABLE purchase ADD CONSTRAINT purchase_fk1 FOREIGN KEY (subscription_id) REFERENCES subscription(id);
 ALTER TABLE song_album ADD CONSTRAINT song_album_fk1 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
