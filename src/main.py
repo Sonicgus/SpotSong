@@ -13,7 +13,7 @@
 #   BD 2022 Team - https://dei.uc.pt/lei/
 #   University of Coimbra
 
-
+import bcrypt
 import flask
 import logging
 import psycopg
@@ -124,6 +124,11 @@ def add_user():
         }
         return flask.jsonify(response)
 
+    
+    hashed_password = bcrypt.hashpw(payload['password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    print(hashed_password)
+
     # parameterized queries, good for security and performance
     statement = (
         "INSERT INTO users (username, email, password) VALUES (%s, %s, %s) RETURNING id;"
@@ -131,7 +136,7 @@ def add_user():
     values = (
         payload["username"],
         payload["email"],
-        payload["password"],
+        hashed_password,
     )
 
     conn = db_connection()
@@ -200,10 +205,9 @@ def authenticate_user():
         return flask.jsonify(response)
 
     # parameterized queries, good for security and performance
-    statement = "SELECT id FROM users WHERE username = %s and password = %s"
+    statement = 'SELECT id, password FROM users WHERE username = %s;'
     values = (
         payload["username"],
-        payload["password"],
     )
 
     conn = db_connection()
@@ -214,13 +218,7 @@ def authenticate_user():
 
         row = cur.fetchone()
 
-        if row is None:
-            response = {
-                "status": StatusCodes["api_error"],
-                "errors": "Passsword ou username incorretos",
-            }
-
-        else:
+        if bcrypt.checkpw(payload['password'].encode('utf-8'), row[1].encode('utf-8')):
             response = {
                 "status": StatusCodes["success"],
                 "results": jwt.encode(
@@ -234,6 +232,12 @@ def authenticate_user():
                     algorithm="HS256",
                 ),
             }
+        else:
+            response = {
+                "status": StatusCodes["api_error"],
+                "errors": "Passsword ou username incorretos",
+            }        
+            
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(error)
