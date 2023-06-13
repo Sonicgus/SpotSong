@@ -126,7 +126,7 @@ def add_user():
 
     # parameterized queries, good for security and performance
     statement = (
-        "INSERT INTO users (username, email, password) VALUES (%s, %s, %s) RETURNING id"
+        "INSERT INTO users (username, email, password) VALUES (%s, %s, %s) RETURNING id;"
     )
     values = (
         payload["username"],
@@ -138,11 +138,14 @@ def add_user():
     cur = conn.cursor()
 
     try:
+        # begin the transaction
+        cur.execute("BEGIN TRANSACTION;")
+
         cur.execute(statement, values)
         user_id = cur.fetchone()[0]
 
         # commit the transaction
-        conn.commit()
+        cur.execute("COMMIT;")
         response = {
             "status": StatusCodes["success"],
             "results": f"Inserted user {user_id}",
@@ -153,7 +156,7 @@ def add_user():
         response = {"status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
-        conn.rollback()
+        cur.execute("ROLLBACK;")
 
     finally:
         if conn is not None:
@@ -331,6 +334,9 @@ def add_song():
     )
 
     try:
+        # begin the transaction
+        cur.execute("BEGIN TRANSACTION;")
+
         cur.execute(statement, values)
 
         song_id = cur.fetchone()[0]
@@ -354,7 +360,7 @@ def add_song():
                 cur.execute(statement, values)
 
         # commit the transaction
-        conn.commit()
+        cur.execute("COMMIT;")
 
         response = {
             "status": StatusCodes["success"],
@@ -366,7 +372,7 @@ def add_song():
         response = {"status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
-        conn.rollback()
+        cur.execute("ROLLBACK;")
 
     finally:
         if conn is not None:
@@ -622,6 +628,9 @@ def add_album():
     cur = conn.cursor()
 
     try:
+        # begin the transaction
+        cur.execute("BEGIN TRANSACTION;")
+
         for song in payload["songs"]:
             if "song_id" in song:
                 #  validate if the artist is associated with the selected existing songs
@@ -697,7 +706,7 @@ def add_album():
             cur.execute(statement, values)
 
         # commit the transaction
-        conn.commit()
+        cur.execute("COMMIT;")
 
         response = {
             "status": StatusCodes["success"],
@@ -709,7 +718,7 @@ def add_album():
         response = {"status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
-        conn.rollback()
+        cur.execute("ROLLBACK;")
 
     finally:
         if conn is not None:
@@ -771,12 +780,15 @@ def add_comment(song_ismn):
     values = (payload["comment"], song_ismn, credentials["user_id"])
 
     try:
+        # begin the transaction
+        cur.execute("BEGIN TRANSACTION;")
+
         cur.execute(statement, values)
 
         comment_id = cur.fetchone()[0]
 
         # commit the transaction
-        conn.commit()
+        cur.execute("COMMIT;")
 
         response = {
             "status": StatusCodes["success"],
@@ -788,7 +800,7 @@ def add_comment(song_ismn):
         response = {"status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
-        conn.rollback()
+        cur.execute("ROLLBACK;")
 
     finally:
         if conn is not None:
@@ -877,6 +889,9 @@ def add_playlist():
     values = (payload["playlist_name"], visibilidade, credentials["user_id"])
 
     try:
+        # begin the transaction
+        cur.execute("BEGIN TRANSACTION;")
+
         cur.execute(statement, values)
 
         playlist_id = cur.fetchone()[0]
@@ -888,7 +903,7 @@ def add_playlist():
             cur.execute(statement, values)
 
         # commit the transaction
-        conn.commit()
+        cur.execute("COMMIT;")
 
         response = {
             "status": StatusCodes["success"],
@@ -900,7 +915,7 @@ def add_playlist():
         response = {"status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
-        conn.rollback()
+        cur.execute("ROLLBACK;")
 
     finally:
         if conn is not None:
@@ -968,6 +983,10 @@ def generate_cards():
     chars = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890"
 
     try:
+        # begin the transaction
+        cur.execute("BEGIN TRANSACTION;")
+
+
         cards = []
         for i in range(int(payload["number_cards"])):
             statement = "INSERT INTO card (code, expire, amount, type, administrator_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
@@ -984,7 +1003,7 @@ def generate_cards():
             cards.append(card_id)
 
         # commit the transaction
-        conn.commit()
+        cur.execute("COMMIT;")
 
         response = {"status": StatusCodes["success"], "results": cards}
 
@@ -993,7 +1012,7 @@ def generate_cards():
         response = {"status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
-        conn.rollback()
+        cur.execute("ROLLBACK;")
 
     finally:
         if conn is not None:
