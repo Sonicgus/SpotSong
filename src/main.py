@@ -127,8 +127,6 @@ def add_user():
     
     hashed_password = bcrypt.hashpw(payload['password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-    print(hashed_password)
-
     # parameterized queries, good for security and performance
     statement = (
         "INSERT INTO users (username, email, password) VALUES (%s, %s, %s) RETURNING id;"
