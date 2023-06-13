@@ -61,7 +61,7 @@ CREATE TABLE song (
 	ismn			 BIGSERIAL,
 	title			 VARCHAR(512) NOT NULL,
 	release_date		 TIMESTAMP NOT NULL,
-	duration		 TIMESTAMP NOT NULL,
+	duration		 VARCHAR(512) NOT NULL,
 	genre			 VARCHAR(512) NOT NULL,
 	artist_person_users_id BIGINT NOT NULL,
 	label_id		 BIGINT NOT NULL,
