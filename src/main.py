@@ -230,7 +230,7 @@ def authenticate_user():
         else:
             response = {
                 "status": StatusCodes["api_error"],
-                "errors": "Passsword ou username incorretos",
+                "errors": "Passsword incorreta",
             }
 
     except (Exception, psycopg.DatabaseError) as error:
