@@ -13,7 +13,7 @@ CREATE TABLE consumer (
 
 CREATE TABLE artist (
 	artistic_name		 VARCHAR(512) NOT NULL,
-	administrator_users_id BIGINT,
+	administrator_users_id BIGINT NOT NULL,
 	label_id		 BIGINT NOT NULL,
 	person_users_id	 BIGINT,
 	PRIMARY KEY(person_users_id)
@@ -92,14 +92,6 @@ CREATE TABLE view (
 	PRIMARY KEY(id,song_ismn,consumer_person_users_id)
 );
 
-CREATE TABLE playlist_song (
-	id		 BIGSERIAL,
-	position	 BIGINT NOT NULL,
-	song_ismn	 BIGINT,
-	playlist_id BIGINT,
-	PRIMARY KEY(id,song_ismn,playlist_id)
-);
-
 CREATE TABLE history_card (
 	cost			 INTEGER,
 	purchase_subscription_id BIGINT,
@@ -116,6 +108,12 @@ CREATE TABLE purchase_subscription (
 	subscription_end_date	 TIMESTAMP NOT NULL,
 	consumer_person_users_id BIGINT NOT NULL,
 	PRIMARY KEY(id)
+);
+
+CREATE TABLE playlist_song (
+	playlist_id BIGINT,
+	song_ismn	 BIGINT,
+	PRIMARY KEY(playlist_id,song_ismn)
 );
 
 CREATE TABLE song_album (
@@ -151,12 +149,12 @@ ALTER TABLE card ADD UNIQUE (code);
 ALTER TABLE card ADD CONSTRAINT card_fk1 FOREIGN KEY (administrator_users_id) REFERENCES administrator(users_id);
 ALTER TABLE view ADD CONSTRAINT view_fk1 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
 ALTER TABLE view ADD CONSTRAINT view_fk2 FOREIGN KEY (consumer_person_users_id) REFERENCES consumer(person_users_id);
-ALTER TABLE playlist_song ADD CONSTRAINT playlist_song_fk1 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
-ALTER TABLE playlist_song ADD CONSTRAINT playlist_song_fk2 FOREIGN KEY (playlist_id) REFERENCES playlist(id);
 ALTER TABLE history_card ADD CONSTRAINT history_card_fk1 FOREIGN KEY (purchase_subscription_id) REFERENCES purchase_subscription(id);
 ALTER TABLE history_card ADD CONSTRAINT history_card_fk2 FOREIGN KEY (card_id) REFERENCES card(id);
 ALTER TABLE purchase_subscription ADD UNIQUE (subscription_id);
 ALTER TABLE purchase_subscription ADD CONSTRAINT purchase_subscription_fk1 FOREIGN KEY (consumer_person_users_id) REFERENCES consumer(person_users_id);
+ALTER TABLE playlist_song ADD CONSTRAINT playlist_song_fk1 FOREIGN KEY (playlist_id) REFERENCES playlist(id);
+ALTER TABLE playlist_song ADD CONSTRAINT playlist_song_fk2 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
 ALTER TABLE song_album ADD CONSTRAINT song_album_fk1 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
 ALTER TABLE song_album ADD CONSTRAINT song_album_fk2 FOREIGN KEY (album_id) REFERENCES album(id);
 ALTER TABLE artist_song ADD CONSTRAINT artist_song_fk1 FOREIGN KEY (artist_person_users_id) REFERENCES artist(person_users_id);
