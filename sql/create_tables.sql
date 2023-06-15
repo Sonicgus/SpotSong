@@ -24,16 +24,6 @@ CREATE TABLE administrator (
 	PRIMARY KEY(users_id)
 );
 
-CREATE TABLE subscription (
-	id			 BIGSERIAL,
-	init_date		 TIMESTAMP NOT NULL,
-	end_date		 TIMESTAMP NOT NULL,
-	purchase_date		 TIMESTAMP NOT NULL,
-	plan_id			 BIGINT NOT NULL,
-	consumer_person_users_id BIGINT NOT NULL,
-	PRIMARY KEY(id)
-);
-
 CREATE TABLE playlist (
 	id			 BIGSERIAL,
 	name			 VARCHAR(512) NOT NULL,
@@ -103,17 +93,20 @@ CREATE TABLE view (
 );
 
 CREATE TABLE history_card (
-	cost		 INTEGER NOT NULL,
-	card_id	 BIGINT,
-	subscription_id BIGINT,
-	PRIMARY KEY(card_id,subscription_id)
+	cost			 INTEGER,
+	purchase_subscription_id BIGINT,
+	card_id			 BIGINT,
+	PRIMARY KEY(purchase_subscription_id,card_id)
 );
 
-CREATE TABLE plan (
-	id		 BIGSERIAL,
-	type	 VARCHAR(512) NOT NULL,
-	price	 INTEGER NOT NULL,
-	last_update DATE NOT NULL,
+CREATE TABLE purchase_subscription (
+	id			 BIGSERIAL,
+	purchase_date		 TIMESTAMP,
+	subscription_id		 BIGSERIAL NOT NULL,
+	subscription_plan	 INTEGER NOT NULL,
+	subscription_init_date	 TIMESTAMP NOT NULL,
+	subscription_end_date	 TIMESTAMP NOT NULL,
+	consumer_person_users_id BIGINT NOT NULL,
 	PRIMARY KEY(id)
 );
 
@@ -142,8 +135,6 @@ ALTER TABLE artist ADD CONSTRAINT artist_fk1 FOREIGN KEY (administrator_users_id
 ALTER TABLE artist ADD CONSTRAINT artist_fk2 FOREIGN KEY (label_id) REFERENCES label(id);
 ALTER TABLE artist ADD CONSTRAINT artist_fk3 FOREIGN KEY (person_users_id) REFERENCES person(users_id);
 ALTER TABLE administrator ADD CONSTRAINT administrator_fk1 FOREIGN KEY (users_id) REFERENCES users(id);
-ALTER TABLE subscription ADD CONSTRAINT subscription_fk1 FOREIGN KEY (plan_id) REFERENCES plan(id);
-ALTER TABLE subscription ADD CONSTRAINT subscription_fk2 FOREIGN KEY (consumer_person_users_id) REFERENCES consumer(person_users_id);
 ALTER TABLE playlist ADD CONSTRAINT playlist_fk1 FOREIGN KEY (consumer_person_users_id) REFERENCES consumer(person_users_id);
 ALTER TABLE comment ADD CONSTRAINT comment_fk1 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
 ALTER TABLE comment ADD CONSTRAINT comment_fk2 FOREIGN KEY (consumer_person_users_id) REFERENCES consumer(person_users_id);
@@ -158,8 +149,10 @@ ALTER TABLE card ADD UNIQUE (code);
 ALTER TABLE card ADD CONSTRAINT card_fk1 FOREIGN KEY (administrator_users_id) REFERENCES administrator(users_id);
 ALTER TABLE view ADD CONSTRAINT view_fk1 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
 ALTER TABLE view ADD CONSTRAINT view_fk2 FOREIGN KEY (consumer_person_users_id) REFERENCES consumer(person_users_id);
-ALTER TABLE history_card ADD CONSTRAINT history_card_fk1 FOREIGN KEY (card_id) REFERENCES card(id);
-ALTER TABLE history_card ADD CONSTRAINT history_card_fk2 FOREIGN KEY (subscription_id) REFERENCES subscription(id);
+ALTER TABLE history_card ADD CONSTRAINT history_card_fk1 FOREIGN KEY (purchase_subscription_id) REFERENCES purchase_subscription(id);
+ALTER TABLE history_card ADD CONSTRAINT history_card_fk2 FOREIGN KEY (card_id) REFERENCES card(id);
+ALTER TABLE purchase_subscription ADD UNIQUE (subscription_id);
+ALTER TABLE purchase_subscription ADD CONSTRAINT purchase_subscription_fk1 FOREIGN KEY (consumer_person_users_id) REFERENCES consumer(person_users_id);
 ALTER TABLE playlist_song ADD CONSTRAINT playlist_song_fk1 FOREIGN KEY (playlist_id) REFERENCES playlist(id);
 ALTER TABLE playlist_song ADD CONSTRAINT playlist_song_fk2 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
 ALTER TABLE song_album ADD CONSTRAINT song_album_fk1 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
