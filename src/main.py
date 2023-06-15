@@ -947,6 +947,13 @@ def generate_cards():
             "results": "card_price value not in payload",
         }
         return flask.jsonify(response)
+    
+    if "token" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token value not in payload",
+        }
+        return flask.jsonify(response)
 
     try:
         credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
