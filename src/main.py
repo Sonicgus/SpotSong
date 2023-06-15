@@ -124,13 +124,12 @@ def add_user():
         }
         return flask.jsonify(response)
 
-    
-    hashed_password = bcrypt.hashpw(payload['password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    hashed_password = bcrypt.hashpw(
+        payload["password"].encode("utf-8"), bcrypt.gensalt()
+    ).decode("utf-8")
 
     # parameterized queries, good for security and performance
-    statement = (
-        "INSERT INTO users (username, email, password) VALUES (%s, %s, %s) RETURNING id;"
-    )
+    statement = "INSERT INTO users (username, email, password) VALUES (%s, %s, %s) RETURNING id;"
     values = (
         payload["username"],
         payload["email"],
@@ -203,10 +202,8 @@ def authenticate_user():
         return flask.jsonify(response)
 
     # parameterized queries, good for security and performance
-    statement = 'SELECT id, password FROM users WHERE username = %s;'
-    values = (
-        payload["username"],
-    )
+    statement = "SELECT id, password FROM users WHERE username = %s;"
+    values = (payload["username"],)
 
     conn = db_connection()
     cur = conn.cursor()
@@ -216,7 +213,7 @@ def authenticate_user():
 
         row = cur.fetchone()
 
-        if bcrypt.checkpw(payload['password'].encode('utf-8'), row[1].encode('utf-8')):
+        if bcrypt.checkpw(payload["password"].encode("utf-8"), row[1].encode("utf-8")):
             response = {
                 "status": StatusCodes["success"],
                 "results": jwt.encode(
@@ -234,8 +231,7 @@ def authenticate_user():
             response = {
                 "status": StatusCodes["api_error"],
                 "errors": "Passsword ou username incorretos",
-            }        
-            
+            }
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(error)
@@ -988,7 +984,6 @@ def generate_cards():
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
 
-
         cards = []
         for i in range(int(payload["number_cards"])):
             statement = "INSERT INTO card (code, expire, amount, type, administrator_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
@@ -1029,6 +1024,7 @@ def main():
 
     logger.info(f"API online: http://{host}:{port}/dbproj")
     app.run(host=host, debug=True, threaded=True, port=port)
-    
+
+
 if __name__ == "__main__":
     main()
