@@ -894,9 +894,10 @@ def add_playlist():
 
         playlist_id = cur.fetchone()[0]
 
-        for p in range(1, 1 + len(payload["songs"])):
-            statement = "INSERT INTO playlist_song (position, song_ismn, playlist_id) VALUES (%s, %s, %s);"
-            values = (p, payload["songs"][p - 1], playlist_id)
+        for song in payload["songs"]:
+            statement = "INSERT INTO playlist_song (song_ismn, playlist_id) VALUES (%s, %s);"
+
+            values = (song, playlist_id)
 
             cur.execute(statement, values)
 
