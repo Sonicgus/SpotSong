@@ -113,7 +113,7 @@ CREATE TABLE plan (
 	id		 BIGSERIAL,
 	type	 VARCHAR(512) NOT NULL,
 	price	 INTEGER NOT NULL,
-	last_update DATE NOT NULL,
+	last_update TIMESTAMP NOT NULL,
 	PRIMARY KEY(id)
 );
 
