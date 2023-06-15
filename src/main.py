@@ -895,7 +895,9 @@ def add_playlist():
         playlist_id = cur.fetchone()[0]
 
         for song in payload["songs"]:
-            statement = "INSERT INTO playlist_song (song_ismn, playlist_id) VALUES (%s, %s);"
+            statement = (
+                "INSERT INTO playlist_song (song_ismn, playlist_id) VALUES (%s, %s);"
+            )
 
             values = (song, playlist_id)
 
@@ -947,7 +949,7 @@ def generate_cards():
             "results": "card_price value not in payload",
         }
         return flask.jsonify(response)
-    
+
     if "token" not in payload:
         response = {
             "status": StatusCodes["api_error"],
@@ -1024,7 +1026,6 @@ def generate_cards():
     return flask.jsonify(response)
 
 
-
 #
 # POST
 # http://localhost:8080/dbproj/subcription
@@ -1050,7 +1051,7 @@ def subscribe_premium():
             "results": "cards not in payload",
         }
         return flask.jsonify(response)
-    
+
     if "token" not in payload:
         response = {
             "status": StatusCodes["api_error"],
@@ -1071,16 +1072,16 @@ def subscribe_premium():
     if "user_id" not in credentials:
         response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
         return flask.jsonify(response)
-    
+
     conn = db_connection()
     cur = conn.cursor()
-    
+
     today = datetime.datetime.now()
 
-    #buscar o preço do plano
+    # buscar o preço do plano
 
     statement = "SELECT price, days_period, id FROM plan WHERE name = %s AND last_update <= %s ORDER BY last_update DESC LIMIT 1;"
-    values = (payload["period"],today)
+    values = (payload["period"], today)
 
     cur.execute(statement, values)
     all = cur.fetchone()
@@ -1113,9 +1114,12 @@ def subscribe_premium():
         cur.execute("BEGIN TRANSACTION;")
 
         statement = "SELECT id, amount FROM card WHERE expire >= %s AND code = ANY(%s) AND amount > 0 ORDER BY expire;"
-        values = (today,payload['cards'],)
+        values = (
+            today,
+            payload["cards"],
+        )
         cur.execute(statement, values)
-        cards=cur.fetchall()
+        cards = cur.fetchall()
 
         if cards is None:
             response = {
@@ -1123,13 +1127,17 @@ def subscribe_premium():
                 "results": "Saldo indisponivel",
             }
             return flask.jsonify(response)
-        
 
-        
         statement = "INSERT INTO subscription (init_date, end_date, purchase_date, plan_id, consumer_person_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
         sub_end_timedelta = sub_end - datetime.datetime.now()
 
-        values = (sub_end, today + sub_end_timedelta + datetime.timedelta(days=days_period), today, plan_id, credentials['user_id'])
+        values = (
+            sub_end,
+            today + sub_end_timedelta + datetime.timedelta(days=days_period),
+            today,
+            plan_id,
+            credentials["user_id"],
+        )
 
         cur.execute(statement, values)
         sub_id = cur.fetchone()[0]
@@ -1140,30 +1148,30 @@ def subscribe_premium():
 
             if price < 0:
                 statement = "INSERT INTO history_card (cost, card_id, subscription_id) VALUES (%s, %s, %s);"
-                values=(aux,card[0],sub_id)
+                values = (aux, card[0], sub_id)
                 cur.execute(statement, values)
 
                 statement = "UPDATE card SET amount = %s WHERE id = %s;"
-                values=(-price,card[0])
+                values = (-price, card[0])
                 cur.execute(statement, values)
                 break
 
             statement = "INSERT INTO history_card (cost, card_id, subscription_id) VALUES (%s, %s, %s);"
-            values=(card[1],card[0],sub_id)
+            values = (card[1], card[0], sub_id)
 
             statement = "UPDATE card SET amount = 0 WHERE id = %s;"
-            values=(card[0])
+            values = card[0]
 
             if price == 0:
                 break
-        
+
         if price > 0:
             response = {
                 "status": StatusCodes["api_error"],
                 "results": "Saldo indisponivel",
             }
             return flask.jsonify(response)
-                
+
         # commit the transaction
         cur.execute("COMMIT;")
 
