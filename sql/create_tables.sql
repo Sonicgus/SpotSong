@@ -13,7 +13,7 @@ CREATE TABLE consumer (
 
 CREATE TABLE artist (
 	artistic_name		 VARCHAR(512) NOT NULL,
-	administrator_users_id BIGINT NOT NULL,
+	administrator_users_id BIGINT,
 	label_id		 BIGINT NOT NULL,
 	person_users_id	 BIGINT,
 	PRIMARY KEY(person_users_id)
@@ -111,9 +111,10 @@ CREATE TABLE history_card (
 
 CREATE TABLE plan (
 	id		 BIGSERIAL,
-	type	 VARCHAR(512) NOT NULL,
+	name	 VARCHAR(512) NOT NULL,
 	price	 INTEGER NOT NULL,
 	last_update TIMESTAMP NOT NULL,
+	days_period INTEGER NOT NULL,
 	PRIMARY KEY(id)
 );
 

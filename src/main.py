@@ -995,7 +995,7 @@ def generate_cards():
             statement = "INSERT INTO card (code, expire, amount, type, administrator_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
             values = (
                 "".join(random.choices(chars, k=16)),
-                datetime.datetime.now() + datetime.timedelta(days=1),
+                datetime.datetime.now() + datetime.timedelta(days=30),
                 amount,
                 amount,
                 credentials["user_id"],
@@ -1050,6 +1050,13 @@ def subscribe_premium():
             "results": "cards not in payload",
         }
         return flask.jsonify(response)
+    
+    if "token" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token value not in payload",
+        }
+        return flask.jsonify(response)
 
     try:
         credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
@@ -1064,47 +1071,105 @@ def subscribe_premium():
     if "user_id" not in credentials:
         response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
         return flask.jsonify(response)
-
-    amount = 0
-
-    if payload["card_price"] == 10:
-        amount = 10
-    elif payload["card_price"] == 25:
-        amount = 25
-    elif payload["card_price"] == 50:
-        amount = 50
-    else:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid card_price"}
-        return flask.jsonify(response)
-
+    
     conn = db_connection()
     cur = conn.cursor()
+    
+    today = datetime.datetime.now()
 
-    chars = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890"
+    #buscar o preço do plano
+
+    statement = "SELECT price, days_period, id FROM plan WHERE name = %s AND last_update <= %s ORDER BY last_update DESC LIMIT 1;"
+    values = (payload["period"],today)
+
+    cur.execute(statement, values)
+    all = cur.fetchone()
+
+    price = all[0]
+    days_period = all[1]
+    plan_id = all[2]
+
+    if price is None:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "Plano indisponivel",
+        }
+        return flask.jsonify(response)
+
+    # verificar se é já subscrito
+
+    statement = "SELECT end_date FROM subscription WHERE end_date >= %s ORDER BY end_date DESC LIMIT 1"
+    values = (today,)
+    cur.execute(statement, values)
+    res = cur.fetchone()
+
+    sub_end = datetime.timedelta(days=0)
+
+    if res is not None:
+        sub_end = res[0]
 
     try:
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
 
-        cards = []
-        for i in range(int(payload["number_cards"])):
-            statement = "INSERT INTO card (code, expire, amount, type, administrator_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
-            values = (
-                "".join(random.choices(chars, k=16)),
-                datetime.datetime.now() + datetime.timedelta(days=1),
-                amount,
-                amount,
-                credentials["user_id"],
-            )
+        statement = "SELECT id, amount, SUM(amount) FROM card WHERE expire >= %s AND code = ANY(%s) AND amount > 0 GROUP BY id;"
+        values = (today,payload['cards'],)
+        cur.execute(statement, values)
+        cards=cur.fetchall()
 
-            cur.execute(statement, values)
-            card_id = cur.fetchone()[0]
-            cards.append(card_id)
 
+        if cards is None:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "Saldo indisponivel",
+            }
+            return flask.jsonify(response)
+        
+        if cards[0][2] < price:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "Saldo indisponivel",
+            }
+            return flask.jsonify(response)
+
+        
+        statement = "INSERT INTO subscription (init_date, end_date, purchase_date, plan_id, consumer_person_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
+        sub_end_timedelta = sub_end - datetime.datetime.now()
+
+        values = (sub_end, today + sub_end_timedelta + datetime.timedelta(days=days_period), today, plan_id, credentials['user_id'])
+
+        cur.execute(statement, values)
+        sub_id = cur.fetchone()[0]
+
+        print(cards)
+
+        for card in cards:
+            aux = price
+            price -= card[1]
+
+            if price < 0:
+                statement = "INSERT INTO history_card (cost, card_id, subscription_id) VALUES (%s, %s, %s);"
+                values=(aux,card[0],sub_id)
+                cur.execute(statement, values)
+
+                statement = "UPDATE card SET amount = %s WHERE id = %s;"
+                values=(-price,card[0])
+                cur.execute(statement, values)
+                break
+
+            statement = "INSERT INTO history_card (cost, card_id, subscription_id) VALUES (%s, %s, %s);"
+            values=(card[1],card[0],sub_id)
+
+            statement = "UPDATE card SET amount = 0 WHERE id = %s;"
+            values=(card[0])
+
+            if price == 0:
+                break
+                
         # commit the transaction
         cur.execute("COMMIT;")
 
-        response = {"status": StatusCodes["success"], "results": cards}
+        response = {"status": StatusCodes["success"], "results": sub_id}
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"POST /dbproj/subcription - error: {error}")

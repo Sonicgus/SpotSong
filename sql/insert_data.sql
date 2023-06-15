@@ -21,6 +21,6 @@ INSERT INTO users (username, password, email) VALUES ('quim', '$2b$12$uSYksKvXjC
 INSERT INTO person (address, contact, users_id) SELECT 'rua fulano de tal', '969 999 999', id FROM users WHERE username = 'quim';
 INSERT INTO consumer (person_users_id) SELECT id FROM users WHERE username = 'quim';
 
-INSERT INTO plan (type,price,last_update) VALUES ('month',7,'2023-06-11 10:30:00');
-INSERT INTO plan (type,price,last_update) VALUES ('quarter',21,'2023-06-11 10:30:00');
-INSERT INTO plan (type,price,last_update) VALUES ('semester',42,'2023-06-11 10:30:00');
+INSERT INTO plan (name,days_period,price,last_update) VALUES ('month',30,7,'2023-06-11 10:30:00');
+INSERT INTO plan (name,days_period,price,last_update) VALUES ('quarter',120,21,'2023-06-11 10:30:00');
+INSERT INTO plan (name,days_period,price,last_update) VALUES ('semester',180,42,'2023-06-11 10:30:00');
