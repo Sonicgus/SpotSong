@@ -926,8 +926,6 @@ def add_playlist():
 #
 # POST
 #
-
-
 @app.route("/dbproj/card", methods=["POST"])
 def generate_cards():
     logger.info("POST /dbproj/card")
@@ -1007,6 +1005,102 @@ def generate_cards():
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"POST /dbproj/card - error: {error}")
+        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+
+        # an error occurred, rollback
+        cur.execute("ROLLBACK;")
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
+
+
+#
+# POST
+# http://localhost:8080/dbproj/subcription
+#
+@app.route("/dbproj/subcription", methods=["POST"])
+def subscribe_premium():
+    logger.info("POST /dbproj/subcription")
+    payload = flask.request.get_json()
+
+    logger.debug(f"POST /dbproj/subcription - payload: {payload}")
+
+    # validate every argument:
+    if "period" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "period value not in payload",
+        }
+        return flask.jsonify(response)
+
+    if "cards" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "cards not in payload",
+        }
+        return flask.jsonify(response)
+
+    try:
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token invalido. tente autenticar novamente",
+        }
+        return flask.jsonify(response)
+
+    if "user_id" not in credentials:
+        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        return flask.jsonify(response)
+
+    amount = 0
+
+    if payload["card_price"] == 10:
+        amount = 10
+    elif payload["card_price"] == 25:
+        amount = 25
+    elif payload["card_price"] == 50:
+        amount = 50
+    else:
+        response = {"status": StatusCodes["api_error"], "results": "Invalid card_price"}
+        return flask.jsonify(response)
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    chars = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890"
+
+    try:
+        # begin the transaction
+        cur.execute("BEGIN TRANSACTION;")
+
+        cards = []
+        for i in range(int(payload["number_cards"])):
+            statement = "INSERT INTO card (code, expire, amount, type, administrator_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
+            values = (
+                "".join(random.choices(chars, k=16)),
+                datetime.datetime.now() + datetime.timedelta(days=1),
+                amount,
+                amount,
+                credentials["user_id"],
+            )
+
+            cur.execute(statement, values)
+            card_id = cur.fetchone()[0]
+            cards.append(card_id)
+
+        # commit the transaction
+        cur.execute("COMMIT;")
+
+        response = {"status": StatusCodes["success"], "results": cards}
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f"POST /dbproj/subcription - error: {error}")
         response = {"status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
