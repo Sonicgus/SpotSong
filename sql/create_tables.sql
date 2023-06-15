@@ -44,8 +44,8 @@ CREATE TABLE playlist (
 CREATE TABLE comment (
 	id			 BIGSERIAL,
 	text			 VARCHAR(512),
-	song_ismn		 BIGINT,
-	consumer_person_users_id BIGINT,
+	song_ismn		 BIGINT NOT NULL,
+	consumer_person_users_id BIGINT NOT NULL,
 	comment_id		 BIGINT,
 	PRIMARY KEY(id)
 );
