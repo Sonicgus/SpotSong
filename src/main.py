@@ -1112,11 +1112,10 @@ def subscribe_premium():
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
 
-        statement = "SELECT id, amount, SUM(amount) FROM card WHERE expire >= %s AND code = ANY(%s) AND amount > 0 GROUP BY id;"
+        statement = "SELECT id, amount FROM card WHERE expire >= %s AND code = ANY(%s) AND amount > 0 ORDER BY expire;"
         values = (today,payload['cards'],)
         cur.execute(statement, values)
         cards=cur.fetchall()
-
 
         if cards is None:
             response = {
@@ -1125,12 +1124,6 @@ def subscribe_premium():
             }
             return flask.jsonify(response)
         
-        if cards[0][2] < price:
-            response = {
-                "status": StatusCodes["api_error"],
-                "results": "Saldo indisponivel",
-            }
-            return flask.jsonify(response)
 
         
         statement = "INSERT INTO subscription (init_date, end_date, purchase_date, plan_id, consumer_person_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
@@ -1140,8 +1133,6 @@ def subscribe_premium():
 
         cur.execute(statement, values)
         sub_id = cur.fetchone()[0]
-
-        print(cards)
 
         for card in cards:
             aux = price
@@ -1165,6 +1156,13 @@ def subscribe_premium():
 
             if price == 0:
                 break
+        
+        if price > 0:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "Saldo indisponivel",
+            }
+            return flask.jsonify(response)
                 
         # commit the transaction
         cur.execute("COMMIT;")

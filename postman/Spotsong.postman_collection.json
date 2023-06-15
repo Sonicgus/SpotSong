@@ -282,6 +282,35 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Subscribe to Premium",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY4NjUwMzYuNzEwNzMyfQ.sUH22AuCQeC8udLKhNQrmfBGo72L47zdcYl2S8XZ_h0\",\r\n    \"period\": \"month\",\r\n    \"cards\": [\r\n        \"FNAF8CM46QATB04U\",\r\n        \"N6G5F3TS0BO59IKW\"\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/dbproj/subcription",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"dbproj",
+						"subcription"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }
