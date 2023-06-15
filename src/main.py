@@ -1110,6 +1110,9 @@ def subscribe_premium():
         sub_end = res[0]
 
     try:
+        cur.execute("LOCK TABLE card IN EXCLUSIVE MODE;")
+        cur.execute("LOCK TABLE subscription IN EXCLUSIVE MODE;")
+        cur.execute("LOCK TABLE history_card IN EXCLUSIVE MODE;")
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
 
