@@ -1241,11 +1241,7 @@ def add_view(song_id):
 
         statement = "INSERT INTO view (date_view, song_ismn, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
 
-        values = (
-            datetime.datetime.now(),
-            song_id,
-            credentials["user_id"]
-        )
+        values = (datetime.datetime.now(), song_id, credentials["user_id"])
 
         cur.execute(statement, values)
         view_id = cur.fetchone()[0]
@@ -1266,6 +1262,70 @@ def add_view(song_id):
 
         # an error occurred, rollback
         cur.execute("ROLLBACK;")
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
+
+#
+# GET
+#
+# Search a song in a JSON payload
+#
+# To use it, you need to use postman or curl:
+#
+# curl -X GET http://localhost:8080/dbproj/report/year-month -H 'Content-Type: application/json' -d
+#
+@app.route("/dbproj/report/<year_month>", methods=["GET"])
+def monthly_report(year_month):
+    payload = flask.request.get_json()
+    logger.info("GET /dbproj/song/{year_month}")
+
+    logger.debug("GET /dbproj/song/{year_month}")
+
+    if "token" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token value not in payload",
+        }
+        return flask.jsonify(response)
+
+    try:
+        # o id está guardado no credentials
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token invalido. tente autenticar novamente",
+        }
+        return flask.jsonify(response)
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    statement = """
+    select genre, COUNT(song.genre) from view inner join song on song_ismn = ismn  where consumer_person_users_id = %s AND date_view >= %s AND date_view <= %s group by genre;
+    """
+    values = (
+        credentials["user_id"],
+        datetime.datetime.now() - datetime.timedelta(days=12 * 30),
+        datetime.datetime.now() + datetime.timedelta(days=30),
+    )
+
+    try:
+        cur.execute(statement, values)
+
+        all = cur.fetchall()
+
+        response = {"status": StatusCodes["success"], "results": all}
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f"GET /dbproj/song/{year_month} - error: {error}")
+        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
 
     finally:
         if conn is not None:
