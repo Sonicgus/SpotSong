@@ -737,6 +737,7 @@ def search_song(keyword):
                 "status": StatusCodes["api_error"],
                 "results": "Token inválido.",
             }
+            conn.close()
             return flask.jsonify(response)
 
         # parameterized queries, good for security and performance
@@ -834,6 +835,7 @@ def detail_artist(artist_id):
         if indb is None:
             response = {
                 "status": StatusCodes["api_error"], "results": "Invalid token"}
+            conn.close()
             return flask.jsonify(response)
 
         # parameterized queries, good for security and performance
@@ -965,6 +967,7 @@ def subscribe_premium():
         if indb is None:
             response = {
                 "status": StatusCodes["api_error"], "results": "Invalid token"}
+            conn.close()
             return flask.jsonify(response)
 
         today = datetime.datetime.now()
@@ -986,6 +989,7 @@ def subscribe_premium():
                 "status": StatusCodes["api_error"],
                 "results": "Plano indisponivel",
             }
+            conn.close()
             return flask.jsonify(response)
 
         # verificar se é já subscrito
@@ -1016,6 +1020,8 @@ def subscribe_premium():
                 "status": StatusCodes["api_error"],
                 "results": "Saldo indisponivel",
             }
+            cur.execute("ROLLBACK;")
+            conn.close()
             return flask.jsonify(response)
 
         statement = "INSERT INTO subscription (init_date, end_date, purchase_date, plan_id, consumer_person_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
@@ -1063,6 +1069,8 @@ def subscribe_premium():
                 "status": StatusCodes["api_error"],
                 "results": "Saldo indisponivel",
             }
+            cur.execute("ROLLBACK;")
+            conn.close()
             return flask.jsonify(response)
 
         # commit the transaction
@@ -1157,6 +1165,8 @@ def add_playlist():
                 "status": StatusCodes["api_error"],
                 "results": "Você nao tem permissoes para criar playlists.",
             }
+            cur.execute("ROLLBACK;")
+            conn.close()
             return flask.jsonify(response)
 
         # parameterized queries, good for security and performance
@@ -1178,6 +1188,8 @@ def add_playlist():
                     "status": StatusCodes["api_error"],
                     "results": f"Você musica com o id {song} nao existe .",
                 }
+                cur.execute("ROLLBACK;")
+                conn.close()
                 return flask.jsonify(response)
 
             statement = (
@@ -1256,6 +1268,7 @@ def add_view(song_id):
         if indb is None:
             response = {
                 "status": StatusCodes["api_error"], "results": "Invalid token"}
+            conn.close()
             return flask.jsonify(response)
 
         cur.execute("BEGIN TRANSACTION;")
@@ -1269,6 +1282,8 @@ def add_view(song_id):
                 "status": StatusCodes["api_error"],
                 "results": "Song is not in database",
             }
+            cur.execute("ROLLBACK;")
+            conn.close()
             return flask.jsonify(response)
 
         statement = "INSERT INTO view (date_view, song_ismn, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
@@ -1367,6 +1382,7 @@ def generate_cards():
                 "status": StatusCodes["api_error"],
                 "results": "Token inválido.",
             }
+            conn.close()
             return flask.jsonify(response)
 
         # begin the transaction
@@ -1454,6 +1470,7 @@ def add_comment(song_ismn):
         if indb is None:
             response = {
                 "status": StatusCodes["api_error"], "results": "song id errado"}
+            conn.close()
             return flask.jsonify(response)
 
         # begin the transaction
@@ -1468,6 +1485,7 @@ def add_comment(song_ismn):
         if indb is None:
             response = {
                 "status": StatusCodes["api_error"], "results": "Invalid token"}
+            conn.close()
             return flask.jsonify(response)
 
         # parameterized queries, good for security and performance
@@ -1553,6 +1571,7 @@ def add_comment_comment(song_ismn, parent_comment_id):
                 "status": StatusCodes["api_error"],
                 "results": "song id ou parant_comment_id errados",
             }
+            conn.close()
             return flask.jsonify(response)
 
         # begin the transaction
@@ -1567,6 +1586,8 @@ def add_comment_comment(song_ismn, parent_comment_id):
         if indb is None:
             response = {
                 "status": StatusCodes["api_error"], "results": "Invalid token"}
+            cur.execute("ROLLBACK;")
+            conn.close()
             return flask.jsonify(response)
 
         statement = "SELECT id FROM comment WHERE id = %s"
@@ -1580,6 +1601,8 @@ def add_comment_comment(song_ismn, parent_comment_id):
                 "status": StatusCodes["api_error"],
                 "results": "Invalid comment parent",
             }
+            cur.execute("ROLLBACK;")
+            conn.close()
             return flask.jsonify(response)
 
         # parameterized queries, good for security and performance
@@ -1665,6 +1688,7 @@ def monthly_report(year, month):
                 "status": StatusCodes["api_error"],
                 "results": "Token inválido.",
             }
+            conn.close()
             return flask.jsonify(response)
 
         statement = """
