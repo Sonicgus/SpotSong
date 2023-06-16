@@ -103,7 +103,7 @@ def add_user():
     logger.debug(f"POST /dbproj/user - payload: {payload}")
 
     # validate every argument:
-    required_fields = ["username", "email", "password", "address", "contact"]
+    required_fields = ["username", "email", "password", "address", "contact","name"]
     for field in required_fields:
         if field not in payload:
             response = {
@@ -144,9 +144,9 @@ def add_user():
         user_id = cur.fetchone()[0]
 
         statement = (
-            "INSERT INTO person (address, contact, users_id) VALUES (%s, %s, %s);"
+            "INSERT INTO person (name,address, contact, users_id) VALUES (%s,%s, %s, %s);"
         )
-        values = (payload["address"], payload["contact"], user_id)
+        values = (payload["name"],payload["address"], payload["contact"], user_id)
 
         cur.execute(statement, values)
 
@@ -903,7 +903,7 @@ def subscribe_premium():
     cur.execute(statement, values)
     res = cur.fetchone()
 
-    sub_end = datetime.timedelta(days=0)
+    sub_end = today
 
     if res is not None:
         sub_end = res[0]

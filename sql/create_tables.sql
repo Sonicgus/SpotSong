@@ -69,6 +69,7 @@ CREATE TABLE song (
 );
 
 CREATE TABLE person (
+	name	 VARCHAR(512) NOT NULL,
 	address	 VARCHAR(512) NOT NULL,
 	contact	 VARCHAR(512) NOT NULL,
 	users_id BIGINT,
