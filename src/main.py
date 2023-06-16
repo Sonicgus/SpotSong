@@ -1127,7 +1127,6 @@ def add_view(song_id):
     return flask.jsonify(response)
 
 
-
 # Generate pre-paid cards
 # POST http://localhost:8080/dbproj/card
 @app.route("/dbproj/card", methods=["POST"])
