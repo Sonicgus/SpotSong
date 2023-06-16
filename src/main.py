@@ -1367,6 +1367,16 @@ def add_comment(song_ismn):
     cur = conn.cursor()
 
     try:
+        statement = "SELECT ismn FROM song WHERE ismn = %s"
+        values = (song_ismn,)
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+
+        if indb is None:
+            response = {"status": StatusCodes["api_error"], "results": "song id errado"}
+            return flask.jsonify(response)
+
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
 
