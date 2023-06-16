@@ -1194,6 +1194,86 @@ def subscribe_premium():
     return flask.jsonify(response)
 
 
+@app.route("/dbproj/<song_id>", methods=["PUT"])
+def add_view(song_id):
+    payload = flask.request.get_json()
+    logger.debug(f"PUT /dbproj/{song_id} - payload: {payload}")
+
+    if "token" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token value not in payload",
+        }
+        return flask.jsonify(response)
+
+    try:
+        # o id está guardado no credentials
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token invalido. tente autenticar novamente",
+        }
+        return flask.jsonify(response)
+
+    # verificar se user_id está em credentials
+    if "user_id" not in credentials:
+        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        return flask.jsonify(response)
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("BEGIN TRANSACTION;")
+
+        cur.execute("SELECT * FROM song WHERE ismn = %s;", (song_id,))
+        song = cur.fetchone()
+
+        if song is None:
+            conn.close()
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "Song is not in database",
+            }
+            return flask.jsonify(response)
+
+        statement = "INSERT INTO view (date_view, song_ismn, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
+
+        values = (
+            datetime.datetime.now(),
+            song_id,
+            credentials["user_id"]
+        )
+
+        cur.execute(statement, values)
+        view_id = cur.fetchone()[0]
+
+        response = {
+            "status": StatusCodes["success"],
+            "results": {
+                "view_id": view_id,
+                "message": "Song view added successfully",
+            },
+        }
+
+        cur.execute("COMMIT;")
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f"PUT /dbproj/{song_id} - error: {error}")
+        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+
+        # an error occurred, rollback
+        cur.execute("ROLLBACK;")
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
+
 def main():
     host = "127.0.0.1"
     port = 8080
