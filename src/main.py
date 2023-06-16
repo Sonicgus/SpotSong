@@ -1102,8 +1102,8 @@ def add_playlist():
         res = cur.fetchone()
 
         if res is None:
-                response = {"status": StatusCodes["api_error"], "results": "Você nao tem permissoes para criar playlists."}
-                return flask.jsonify(response)
+            response = {"status": StatusCodes["api_error"], "results": "Você nao tem permissoes para criar playlists."}
+            return flask.jsonify(response)
 
         # parameterized queries, good for security and performance
         statement = "INSERT INTO playlist (name, is_private, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
