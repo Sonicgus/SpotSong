@@ -668,10 +668,45 @@ def search_song(keyword):
 
     logger.debug("GET /dbproj/song/{keyword} - payload: {payload}")
 
+    if "token" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token value not in payload",
+        }
+        return flask.jsonify(response)
+
+    try:
+        # o id está guardado no credentials
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token invalido. tente autenticar novamente",
+        }
+        return flask.jsonify(response)
+
+    # verificar se user_id está em credentials
+    if "user_id" not in credentials:
+        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        return flask.jsonify(response)
+
     conn = db_connection()
     cur = conn.cursor()
 
     try:
+        statement = "SELECT person_users_id FROM consumer WHERE person_users_id = %s"
+        values = (credentials["user_id"],)
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+        if indb is None:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "Token inválido.",
+            }
+            return flask.jsonify(response)
+
         # parameterized queries, good for security and performance
         statement = f"SELECT s.ismn AS song_id, s.title AS song_title, a.artistic_name AS artist_name, al.id AS album_id FROM song s INNER JOIN artist_song sa ON s.ismn = sa.song_ismn INNER JOIN artist a ON sa.artist_person_users_id = a.person_users_id LEFT JOIN song_album als ON s.ismn = als.song_ismn LEFT JOIN album al ON als.album_id = al.id WHERE s.title LIKE '%{keyword}%'; "
 
@@ -753,6 +788,15 @@ def detail_artist(artist_id):
     cur = conn.cursor()
 
     try:
+        statement = "SELECT person_users_id FROM consumer WHERE person_users_id = %s"
+        values = (credentials["user_id"],)
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+
+        if indb is None:
+            response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+            return flask.jsonify(response)
 
         # parameterized queries, good for security and performance
         statement = """
@@ -870,6 +914,17 @@ def subscribe_premium():
     cur = conn.cursor()
 
     try:
+
+        statement = "SELECT person_users_id FROM consumer WHERE person_users_id = %s"
+        values = (credentials["user_id"],)
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+
+        if indb is None:
+            response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+            return flask.jsonify(response)
+
         today = datetime.datetime.now()
 
         # buscar o preço do plano
@@ -1049,8 +1104,6 @@ def add_playlist():
         cur.execute(statement, values)
         indb = cur.fetchone()
 
-        print(indb)
-
         if indb is None:
             response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
             return flask.jsonify(response)
@@ -1127,6 +1180,16 @@ def add_view(song_id):
     cur = conn.cursor()
 
     try:
+        statement = "SELECT person_users_id FROM consumer WHERE person_users_id = %s"
+        values = (credentials["user_id"],)
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+
+        if indb is None:
+            response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+            return flask.jsonify(response)
+        
         cur.execute("BEGIN TRANSACTION;")
 
         cur.execute("SELECT * FROM song WHERE ismn = %s;", (song_id,))
@@ -1203,7 +1266,7 @@ def generate_cards():
     if "user_id" not in credentials:
         response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
         return flask.jsonify(response)
-
+    
     amount = 0
 
     if payload["card_price"] == 10:
@@ -1222,6 +1285,18 @@ def generate_cards():
     chars = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890"
 
     try:
+        statement = "SELECT users_id FROM administrator WHERE users_id = %s"
+        values = (credentials["user_id"],)
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+        if indb is None:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "Token inválido.",
+            }
+            return flask.jsonify(response)
+    
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
 
@@ -1478,6 +1553,18 @@ def monthly_report(year, month):
     cur = conn.cursor()
 
     try:
+        statement = "SELECT person_users_id FROM consumer WHERE person_users_id = %s"
+        values = (credentials["user_id"],)
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+        if indb is None:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "Token inválido.",
+            }
+            return flask.jsonify(response)
+        
         statement = """
         SELECT
         EXTRACT(MONTH FROM v.date_view) AS mes,
