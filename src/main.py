@@ -1423,12 +1423,11 @@ def add_comment_comment(song_ismn, parent_comment_id):
 #
 # curl -X GET http://localhost:8080/dbproj/report/year-month -H 'Content-Type: application/json' -d
 #
-@app.route("/dbproj/report/<year_month>", methods=["GET"])
-def monthly_report(year_month):
+@app.route("/dbproj/report/<year>-<month>", methods=["GET"])
+def monthly_report(year, month):
     payload = flask.request.get_json()
-    logger.info("GET /dbproj/song/{year_month}")
-
-    logger.debug("GET /dbproj/song/{year_month}")
+    logger.info("GET /dbproj/song/{year}{month}")
+    logger.debug("GET /dbproj/song/{year}{month}")
 
     if "token" not in payload:
         response = {
@@ -1448,6 +1447,9 @@ def monthly_report(year_month):
         }
         return flask.jsonify(response)
 
+    init_date = datetime.datetime(int(year) - 1, int(month), 1).strftime("%Y-%m-%d")
+    end_date = datetime.datetime(int(year), int(month), 1).strftime("%Y-%m-%d")
+
     conn = db_connection()
     cur = conn.cursor()
 
@@ -1463,25 +1465,22 @@ def monthly_report(year_month):
     WHERE
     v.consumer_person_users_id = %s
     AND v.date_view >= %s
+    AND v.date_view <= %s
     GROUP BY
     mes, s.genre
     ORDER BY
     mes, s.genre;
     """
-    values = (
-        credentials["user_id"],
-        datetime.datetime.now() - datetime.timedelta(days=12 * 30),
-    )
+    values = (credentials["user_id"], init_date, end_date)
 
     try:
         cur.execute(statement, values)
+        all_data = cur.fetchall()
 
-        all = cur.fetchall()
-
-        response = {"status": StatusCodes["success"], "results": all}
+        response = {"status": StatusCodes["success"], "results": all_data}
 
     except (Exception, psycopg.DatabaseError) as error:
-        logger.error(f"GET /dbproj/song/{year_month} - error: {error}")
+        logger.error(f"GET /dbproj/song/{year}{month} - error: {error}")
         response = {"status": StatusCodes["internal_error"], "errors": str(error)}
 
     finally:
