@@ -13,7 +13,7 @@ CREATE TABLE consumer (
 
 CREATE TABLE artist (
 	artistic_name		 VARCHAR(512) NOT NULL,
-	administrator_users_id BIGINT,
+	administrator_users_id BIGINT NOT NULL,
 	label_id		 BIGINT NOT NULL,
 	person_users_id	 BIGINT,
 	PRIMARY KEY(person_users_id)
@@ -98,9 +98,9 @@ CREATE TABLE card (
 CREATE TABLE view (
 	id			 BIGSERIAL,
 	date_view		 TIMESTAMP NOT NULL,
-	song_ismn		 BIGINT,
-	consumer_person_users_id BIGINT,
-	PRIMARY KEY(id,song_ismn,consumer_person_users_id)
+	song_ismn		 BIGINT NOT NULL,
+	consumer_person_users_id BIGINT NOT NULL,
+	PRIMARY KEY(id)
 );
 
 CREATE TABLE history_card (
