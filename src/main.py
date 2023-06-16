@@ -985,7 +985,7 @@ def subscribe_premium():
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
 
-        statement = "SELECT id, amount FROM card WHERE expire >= %s AND code = ANY(%s) AND amount > 0 AND (consumer_person_users_id = OR consumer_person_users_id IS NULL)  ORDER BY expire;"
+        statement = "SELECT id, amount FROM card WHERE expire >= %s AND code = ANY(%s) AND amount > 0 AND (consumer_person_users_id = %s OR consumer_person_users_id IS NULL)  ORDER BY expire;"
         values = (
             today,
             payload["cards"], credentials["user_id"]
