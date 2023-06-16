@@ -104,18 +104,18 @@ def add_user():
 
     # validate every argument:
     required_fields = ["username", "email", "password", "address", "contact"]
-    missing_fields = [field for field in required_fields if field not in payload]
-    if missing_fields:
-        response = {
+    for field in required_fields:
+        if field not in payload:
+            response = {
             "status": StatusCodes["api_error"],
-            "results": f"{', '.join(missing_fields)} value(s) not in payload",
-        }
-        return flask.jsonify(response)
+            "results": f'{field} not in payload',
+            }
+            return flask.jsonify(response)
+      
+    hashed_password = bcrypt.hashpw(payload["password"].encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
     conn = db_connection()
     cur = conn.cursor()
-
-    hashed_password = bcrypt.hashpw(payload["password"].encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
     try:
         # begin the transaction
@@ -132,6 +132,7 @@ def add_user():
                 "status": StatusCodes["api_error"],
                 "results": "username invalido"
             }
+            cur.execute("ROLLBACK;")
             return flask.jsonify(response)
 
         statement = "INSERT INTO users (username, email, password) VALUES (%s, %s, %s) RETURNING id;"
@@ -147,15 +148,16 @@ def add_user():
 
         
         if "artistic_name" in payload or "label_id" in payload:
-            required_fields.extend(["token", "label_id", "artistic_name"])
-            missing_fields = [field for field in required_fields if field not in payload]
-            if missing_fields:
-                response = {
+            required_fields = ["token", "label_id", "artistic_name"]
+            for field in required_fields:
+                if field not in payload:
+                    response = {
                     "status": StatusCodes["api_error"],
-                    "results": f"{', '.join(missing_fields)} value(s) not in payload",
-                }
-                return flask.jsonify(response)
-
+                    "results": f'{field} not in payload',
+                    }
+                    cur.execute("ROLLBACK;")    
+                    return flask.jsonify(response)
+            
             try:
                 # o id está guardado no credentials
                 credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
@@ -165,6 +167,7 @@ def add_user():
                     "status": StatusCodes["api_error"],
                     "results": "token invalido. tente autenticar novamente",
                 }
+                cur.execute("ROLLBACK;")
                 return flask.jsonify(response)
 
             
@@ -172,12 +175,29 @@ def add_user():
             values = (credentials["user_id"],)
 
             cur.execute(statement, values)
-            adm_id = cur.fetchone()[0]
-            if adm_id is None:
+            res = cur.fetchone()
+
+            if res is None:
                 response = {
                     "status": StatusCodes["api_error"],
                     "results": "token invalido. tente autenticar novamente",
                 }
+                cur.execute("ROLLBACK;")
+                return flask.jsonify(response)
+            adm_id = res[0]
+
+            statement = "SELECT artistic_name FROM artist WHERE artistic_name = %s"
+            values = (payload["artistic_name"],)
+
+            cur.execute(statement, values)
+            res = cur.fetchone()
+
+            if res is not None:
+                response = {
+                    "status": StatusCodes["api_error"],
+                    "results": "artistic_name invalido",
+                }
+                cur.execute("ROLLBACK;")
                 return flask.jsonify(response)
             
             statement = "INSERT INTO artist (artistic_name, administrator_users_id,label_id,person_users_id) VALUES (%s,%s,%s,%s)"
@@ -1088,21 +1108,36 @@ def add_playlist():
     else:
         response = {
             "status": StatusCodes["api_error"],
-            "results": "token value not in payload",
+            "results": "invalid visibility",
         }
         return flask.jsonify(response)
 
     conn = db_connection()
     cur = conn.cursor()
 
-    # parameterized queries, good for security and performance
-    statement = "INSERT INTO playlist (name, is_private, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
-    values = (payload["playlist_name"], visibilidade, credentials["user_id"])
+    
 
     try:
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
 
+        statement = "SELECT person_users_id FROM consumer WHERE person_users_id = %s"
+        values = (credentials["user_id"],)
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+
+        print(indb)
+
+        if indb is None:
+            response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+            return flask.jsonify(response)
+
+
+
+        # parameterized queries, good for security and performance
+        statement = "INSERT INTO playlist (name, is_private, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
+        values = (payload["playlist_name"], visibilidade, credentials["user_id"])
         cur.execute(statement, values)
 
         playlist_id = cur.fetchone()[0]
