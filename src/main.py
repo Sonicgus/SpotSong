@@ -508,6 +508,18 @@ def add_album():
                 "results": "Token inválido.",
             }
             return flask.jsonify(response)
+        
+        statement = "SELECT publisher_id FROM label WHERE publisher_id = %s"
+        values = (credentials["publisher_id"],)
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+        if indb is None:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "Token inválido.",
+            }
+            return flask.jsonify(response)
 
         # parameterized queries, good for security and performance
         statement = "INSERT INTO album (title, release_date, artist_person_users_id, label_id) VALUES (%s,%s,%s,%s) RETURNING id;"
@@ -540,6 +552,20 @@ def add_album():
                         }
                         cur.execute("ROLLBACK;")
                         return flask.jsonify(response)
+                    
+                statement = "SELECT publisher_id FROM label WHERE publisher_id = %s"
+
+                values = (song["publisher_id"],)
+
+                cur.execute(statement, values)
+                indb = cur.fetchone()
+                if indb is None:
+                    response = {
+                        "status": StatusCodes["api_error"],
+                        "results": "Token inválido.",
+                    }
+                    return flask.jsonify(response)
+        
                 statement = "INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn;"
                 values = (
                     song["song_name"],
@@ -555,6 +581,23 @@ def add_album():
 
                 if "other_artists" in song:
                     for artist_id in song["other_artists"]:
+                        statement = (
+                            "SELECT person_users_id FROM artist WHERE person_users_id = %s"
+                        )
+                        values = (artist_id,)
+
+                        cur.execute(statement, values)
+                        indb = cur.fetchone()
+
+                        if indb is None:
+                            response = {
+                                "status": StatusCodes["api_error"],
+                                "results": f"artista com o id {artist_id} nao existe.",
+                            }
+                            cur.execute("ROLLBACK;")
+                            return flask.jsonify(response)
+
+
                         statement = "INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s);"
                         values = (
                             artist_id,
