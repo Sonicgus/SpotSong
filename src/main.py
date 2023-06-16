@@ -342,47 +342,14 @@ def add_song():
     logger.debug(f"POST /dbproj/song - payload: {payload}")
 
     # validate every argument:
-    if "token" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "song_name" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "song_name value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "duration" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "duration value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "genre" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "genre value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "release_date" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "release_date value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "publisher_id" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "publisher_id value not in payload",
-        }
-        return flask.jsonify(response)
+    required_fields = ["token", "song_name","duration","genre","release_date","publisher_id"]
+    for field in required_fields:
+        if field not in payload:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": f"{field} not in payload",
+            }
+            return flask.jsonify(response)
 
     try:
         credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
@@ -416,6 +383,7 @@ def add_song():
                 "status": StatusCodes["api_error"],
                 "results": "token invalido.",
             }
+            cur.execute("ROLLBACK;")
             return flask.jsonify(response)
 
         statement = "SELECT id FROM label WHERE id = %s"
@@ -428,6 +396,7 @@ def add_song():
                 "status": StatusCodes["api_error"],
                 "results": "publisher_id invalido.",
             }
+            cur.execute("ROLLBACK;")
             return flask.jsonify(response)
 
         statement = "INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn;"
@@ -454,6 +423,20 @@ def add_song():
 
         if "other_artists" in payload:
             for artist_id in payload["other_artists"]:
+                statement = "SELECT person_users_id FROM artist WHERE person_users_id = %s"
+                values = (artist_id,)
+
+                cur.execute(statement, values)
+                indb = cur.fetchone()
+
+                if indb is None:
+                    response = {
+                        "status": StatusCodes["api_error"],
+                        "results": f"artista com o id {artist_id} nao existe.",
+                    }
+                    cur.execute("ROLLBACK;")
+                    return flask.jsonify(response)
+                
                 statement = "INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s)"
                 values = (
                     artist_id,
