@@ -977,7 +977,7 @@ def subscribe_premium():
         # commit the transaction
         cur.execute("COMMIT;")
 
-        response = {"status": StatusCodes["success"], "results": sub_id}
+        response = {"status": StatusCodes["success"], "results": f'subscription {sub_id} created'}
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"POST /dbproj/subcription - error: {error}")
