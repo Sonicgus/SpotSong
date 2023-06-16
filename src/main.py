@@ -103,7 +103,7 @@ def add_user():
     logger.debug(f"POST /dbproj/user - payload: {payload}")
 
     # validate every argument:
-    required_fields = ["username", "email", "password", "address", "contact","name"]
+    required_fields = ["username", "email", "password", "address", "contact", "name"]
     for field in required_fields:
         if field not in payload:
             response = {
@@ -143,10 +143,8 @@ def add_user():
         cur.execute(statement, values)
         user_id = cur.fetchone()[0]
 
-        statement = (
-            "INSERT INTO person (name,address, contact, users_id) VALUES (%s,%s, %s, %s);"
-        )
-        values = (payload["name"],payload["address"], payload["contact"], user_id)
+        statement = "INSERT INTO person (name,address, contact, users_id) VALUES (%s,%s, %s, %s);"
+        values = (payload["name"], payload["address"], payload["contact"], user_id)
 
         cur.execute(statement, values)
 
@@ -977,7 +975,10 @@ def subscribe_premium():
         # commit the transaction
         cur.execute("COMMIT;")
 
-        response = {"status": StatusCodes["success"], "results": f'subscription {sub_id} created'}
+        response = {
+            "status": StatusCodes["success"],
+            "results": f"subscription {sub_id} created",
+        }
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"POST /dbproj/subcription - error: {error}")
@@ -1528,10 +1529,15 @@ def monthly_report(year, month):
     values = (credentials["user_id"], init_date, end_date)
 
     try:
+        response = {"status": StatusCodes["success"], "results": []}
+
         cur.execute(statement, values)
         all_data = cur.fetchall()
 
-        response = {"status": StatusCodes["success"], "results": all_data}
+        for linha in all_data:
+            response["results"].append(
+                {"month": linha[0], "genre": linha[1], "playbacks": linha[2]}
+            )
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"GET /dbproj/song/{year}{month} - error: {error}")
