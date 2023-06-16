@@ -41,7 +41,8 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 
 # create formatter
-formatter = logging.Formatter("%(asctime)s [%(levelname)s]:  %(message)s", "%H:%M:%S")
+formatter = logging.Formatter(
+    "%(asctime)s [%(levelname)s]:  %(message)s", "%H:%M:%S")
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
@@ -95,7 +96,8 @@ def add_user():
     logger.debug(f"POST /dbproj/user - payload: {payload}")
 
     # validate every argument:
-    required_fields = ["username", "email", "password", "address", "contact", "name"]
+    required_fields = ["username", "email",
+                       "password", "address", "contact", "name"]
     for field in required_fields:
         if field not in payload:
             response = {
@@ -136,7 +138,8 @@ def add_user():
         user_id = cur.fetchone()[0]
 
         statement = "INSERT INTO person (name,address, contact, users_id) VALUES (%s,%s, %s, %s);"
-        values = (payload["name"], payload["address"], payload["contact"], user_id)
+        values = (payload["name"], payload["address"],
+                  payload["contact"], user_id)
 
         cur.execute(statement, values)
 
@@ -225,7 +228,8 @@ def add_user():
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"POST /dbproj/user - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+        response = {
+            "status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
         cur.execute("ROLLBACK;")
@@ -296,7 +300,8 @@ def authenticate_user():
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(error)
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+        response = {
+            "status": StatusCodes["internal_error"], "errors": str(error)}
 
     finally:
         if conn is not None:
@@ -332,7 +337,8 @@ def add_song():
             return flask.jsonify(response)
 
     try:
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+        credentials = jwt.decode(
+            payload["token"], secret_key, algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
         response = {
@@ -342,7 +348,8 @@ def add_song():
         return flask.jsonify(response)
 
     if "user_id" not in credentials:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        response = {
+            "status": StatusCodes["api_error"], "results": "Invalid token"}
         return flask.jsonify(response)
 
     conn = db_connection()
@@ -437,7 +444,8 @@ def add_song():
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"POST /dbproj/song - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+        response = {
+            "status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
         cur.execute("ROLLBACK;")
@@ -459,7 +467,8 @@ def add_album():
     logger.debug(f"POST /dbproj/album - payload: {payload}")
 
     # validate every argument:
-    required_fields = ["token", "album_name", "release_date", "publisher_id", "songs"]
+    required_fields = ["token", "album_name",
+                       "release_date", "publisher_id", "songs"]
     for field in required_fields:
         if field not in payload:
             response = {
@@ -476,7 +485,8 @@ def add_album():
         return flask.jsonify(response)
 
     try:
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+        credentials = jwt.decode(
+            payload["token"], secret_key, algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
         response = {
@@ -486,7 +496,8 @@ def add_album():
         return flask.jsonify(response)
 
     if "user_id" not in credentials:
-        response = {"status": StatusCodes["api_error"], "results": "Token inválido"}
+        response = {
+            "status": StatusCodes["api_error"], "results": "Token inválido"}
         return flask.jsonify(response)
 
     conn = db_connection()
@@ -644,7 +655,8 @@ def add_album():
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"POST /dbproj/album - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+        response = {
+            "status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
         cur.execute("ROLLBACK;")
@@ -674,7 +686,8 @@ def search_song(keyword):
 
     try:
         # o id está guardado no credentials
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+        credentials = jwt.decode(
+            payload["token"], secret_key, algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
         response = {
@@ -685,7 +698,8 @@ def search_song(keyword):
 
     # verificar se user_id está em credentials
     if "user_id" not in credentials:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        response = {
+            "status": StatusCodes["api_error"], "results": "Invalid token"}
         return flask.jsonify(response)
 
     conn = db_connection()
@@ -720,7 +734,8 @@ def search_song(keyword):
                 if element[2] not in dicisongs[song_id]["artists"]:
                     dicisongs[song_id]["artists"].append(element[2])
             else:
-                dicisongs[song_id] = {"song_title": element[1], "artists": [element[2]]}
+                dicisongs[song_id] = {
+                    "song_title": element[1], "artists": [element[2]]}
 
             album = element[3]
 
@@ -731,7 +746,8 @@ def search_song(keyword):
         results = []
 
         for song_id, song_info in dicisongs.items():
-            song = {"title": song_info["song_title"], "artists": song_info["artists"]}
+            song = {"title": song_info["song_title"],
+                    "artists": song_info["artists"]}
             results.append(song)
 
         results.append({"albuns": albuns})
@@ -740,7 +756,8 @@ def search_song(keyword):
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"GET /dbproj/song/{keyword} - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+        response = {
+            "status": StatusCodes["internal_error"], "errors": str(error)}
 
     finally:
         if conn is not None:
@@ -767,7 +784,8 @@ def detail_artist(artist_id):
 
     try:
         # o id está guardado no credentials
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+        credentials = jwt.decode(
+            payload["token"], secret_key, algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
         response = {
@@ -778,7 +796,8 @@ def detail_artist(artist_id):
 
     # verificar se user_id está em credentials
     if "user_id" not in credentials:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        response = {
+            "status": StatusCodes["api_error"], "results": "Invalid token"}
         return flask.jsonify(response)
 
     conn = db_connection()
@@ -792,7 +811,8 @@ def detail_artist(artist_id):
         indb = cur.fetchone()
 
         if indb is None:
-            response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+            response = {
+                "status": StatusCodes["api_error"], "results": "Invalid token"}
             return flask.jsonify(response)
 
         # parameterized queries, good for security and performance
@@ -865,7 +885,8 @@ def detail_artist(artist_id):
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"GET /dbproj/song/{artist_id} - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+        response = {
+            "status": StatusCodes["internal_error"], "errors": str(error)}
 
     finally:
         if conn is not None:
@@ -894,7 +915,8 @@ def subscribe_premium():
             return flask.jsonify(response)
 
     try:
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+        credentials = jwt.decode(
+            payload["token"], secret_key, algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
         response = {
@@ -904,7 +926,8 @@ def subscribe_premium():
         return flask.jsonify(response)
 
     if "user_id" not in credentials:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        response = {
+            "status": StatusCodes["api_error"], "results": "Invalid token"}
         return flask.jsonify(response)
 
     conn = db_connection()
@@ -919,7 +942,8 @@ def subscribe_premium():
         indb = cur.fetchone()
 
         if indb is None:
-            response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+            response = {
+                "status": StatusCodes["api_error"], "results": "Invalid token"}
             return flask.jsonify(response)
 
         today = datetime.datetime.now()
@@ -961,10 +985,10 @@ def subscribe_premium():
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
 
-        statement = "SELECT id, amount FROM card WHERE expire >= %s AND code = ANY(%s) AND amount > 0 ORDER BY expire;"
+        statement = "SELECT id, amount FROM card WHERE expire >= %s AND code = ANY(%s) AND amount > 0 AND (consumer_person_users_id = OR consumer_person_users_id IS NULL)  ORDER BY expire;"
         values = (
             today,
-            payload["cards"],
+            payload["cards"], credentials["user_id"]
         )
         cur.execute(statement, values)
         cards = cur.fetchall()
@@ -999,16 +1023,16 @@ def subscribe_premium():
                 values = (aux, card[0], sub_id)
                 cur.execute(statement, values)
 
-                statement = "UPDATE card SET amount = %s WHERE id = %s;"
-                values = (-price, card[0])
+                statement = "UPDATE card SET amount = %s, consumer_person_users_id = %s  WHERE id = %s;"
+                values = (-price,credentials["user_id"], card[0])
                 cur.execute(statement, values)
                 break
 
             statement = "INSERT INTO history_card (cost, card_id, subscription_id) VALUES (%s, %s, %s);"
             values = (card[1], card[0], sub_id)
 
-            statement = "UPDATE card SET amount = 0 WHERE id = %s;"
-            values = card[0]
+            statement = "UPDATE card SET amount = 0, consumer_person_users_id = %s WHERE id = %s;"
+            values = (credentials["user_id"],card[0],)
 
             if price == 0:
                 break
@@ -1030,7 +1054,8 @@ def subscribe_premium():
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"POST /dbproj/subcription - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+        response = {
+            "status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
         cur.execute("ROLLBACK;")
@@ -1062,7 +1087,8 @@ def add_playlist():
             return flask.jsonify(response)
 
     try:
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+        credentials = jwt.decode(
+            payload["token"], secret_key, algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
         response = {
@@ -1072,7 +1098,8 @@ def add_playlist():
         return flask.jsonify(response)
 
     if "user_id" not in credentials:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        response = {
+            "status": StatusCodes["api_error"], "results": "Invalid token"}
         return flask.jsonify(response)
 
     visibilidade = ""
@@ -1095,19 +1122,21 @@ def add_playlist():
         today = datetime.datetime.now()
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
-        
+
         statement = "SELECT id FROM subscription WHERE end_date >= %s AND consumer_person_users_id = %s"
-        values = (today,credentials["user_id"],)
+        values = (today, credentials["user_id"],)
         cur.execute(statement, values)
         res = cur.fetchone()
 
         if res is None:
-            response = {"status": StatusCodes["api_error"], "results": "Você nao tem permissoes para criar playlists."}
+            response = {"status": StatusCodes["api_error"],
+                        "results": "Você nao tem permissoes para criar playlists."}
             return flask.jsonify(response)
 
         # parameterized queries, good for security and performance
         statement = "INSERT INTO playlist (name, is_private, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
-        values = (payload["playlist_name"], visibilidade, credentials["user_id"])
+        values = (payload["playlist_name"],
+                  visibilidade, credentials["user_id"])
         cur.execute(statement, values)
 
         playlist_id = cur.fetchone()[0]
@@ -1119,9 +1148,10 @@ def add_playlist():
             res = cur.fetchone()
 
             if res is None:
-                response = {"status": StatusCodes["api_error"], "results": f"Você musica com o id {song} nao existe ."}
+                response = {
+                    "status": StatusCodes["api_error"], "results": f"Você musica com o id {song} nao existe ."}
                 return flask.jsonify(response)
-            
+
             statement = (
                 "INSERT INTO playlist_song (song_ismn, playlist_id) VALUES (%s, %s);"
             )
@@ -1140,7 +1170,8 @@ def add_playlist():
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"POST /dbproj/playlist - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+        response = {
+            "status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
         cur.execute("ROLLBACK;")
@@ -1168,7 +1199,8 @@ def add_view(song_id):
 
     try:
         # o id está guardado no credentials
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+        credentials = jwt.decode(
+            payload["token"], secret_key, algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
         response = {
@@ -1179,7 +1211,8 @@ def add_view(song_id):
 
     # verificar se user_id está em credentials
     if "user_id" not in credentials:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        response = {
+            "status": StatusCodes["api_error"], "results": "Invalid token"}
         return flask.jsonify(response)
 
     conn = db_connection()
@@ -1193,7 +1226,8 @@ def add_view(song_id):
         indb = cur.fetchone()
 
         if indb is None:
-            response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+            response = {
+                "status": StatusCodes["api_error"], "results": "Invalid token"}
             return flask.jsonify(response)
 
         cur.execute("BEGIN TRANSACTION;")
@@ -1228,7 +1262,8 @@ def add_view(song_id):
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"PUT /dbproj/{song_id} - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+        response = {
+            "status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
         cur.execute("ROLLBACK;")
@@ -1260,7 +1295,8 @@ def generate_cards():
             return flask.jsonify(response)
 
     try:
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+        credentials = jwt.decode(
+            payload["token"], secret_key, algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
         response = {
@@ -1270,7 +1306,8 @@ def generate_cards():
         return flask.jsonify(response)
 
     if "user_id" not in credentials:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        response = {
+            "status": StatusCodes["api_error"], "results": "Invalid token"}
         return flask.jsonify(response)
 
     amount = 0
@@ -1282,7 +1319,8 @@ def generate_cards():
     elif payload["card_price"] == 50:
         amount = 50
     else:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid card_price"}
+        response = {
+            "status": StatusCodes["api_error"], "results": "Invalid card_price"}
         return flask.jsonify(response)
 
     conn = db_connection()
@@ -1328,7 +1366,8 @@ def generate_cards():
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"POST /dbproj/card - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+        response = {
+            "status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
         cur.execute("ROLLBACK;")
@@ -1359,7 +1398,8 @@ def add_comment(song_ismn):
             }
             return flask.jsonify(response)
     try:
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+        credentials = jwt.decode(
+            payload["token"], secret_key, algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
         response = {
@@ -1369,7 +1409,8 @@ def add_comment(song_ismn):
         return flask.jsonify(response)
 
     if "user_id" not in credentials:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        response = {
+            "status": StatusCodes["api_error"], "results": "Invalid token"}
         return flask.jsonify(response)
 
     conn = db_connection()
@@ -1383,7 +1424,8 @@ def add_comment(song_ismn):
         indb = cur.fetchone()
 
         if indb is None:
-            response = {"status": StatusCodes["api_error"], "results": "song id errado"}
+            response = {
+                "status": StatusCodes["api_error"], "results": "song id errado"}
             return flask.jsonify(response)
 
         # begin the transaction
@@ -1396,7 +1438,8 @@ def add_comment(song_ismn):
         indb = cur.fetchone()
 
         if indb is None:
-            response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+            response = {
+                "status": StatusCodes["api_error"], "results": "Invalid token"}
             return flask.jsonify(response)
 
         # parameterized queries, good for security and performance
@@ -1417,7 +1460,8 @@ def add_comment(song_ismn):
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"POST /dbproj/comments/{song_ismn} - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+        response = {
+            "status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
         cur.execute("ROLLBACK;")
@@ -1450,7 +1494,8 @@ def add_comment_comment(song_ismn, parent_comment_id):
             }
             return flask.jsonify(response)
     try:
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+        credentials = jwt.decode(
+            payload["token"], secret_key, algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
         response = {
@@ -1460,7 +1505,8 @@ def add_comment_comment(song_ismn, parent_comment_id):
         return flask.jsonify(response)
 
     if "user_id" not in credentials:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        response = {
+            "status": StatusCodes["api_error"], "results": "Invalid token"}
         return flask.jsonify(response)
 
     conn = db_connection()
@@ -1469,13 +1515,14 @@ def add_comment_comment(song_ismn, parent_comment_id):
     try:
 
         statement = "SELECT id FROM comment WHERE song_ismn = %s AND id = %s"
-        values = (song_ismn,parent_comment_id)
+        values = (song_ismn, parent_comment_id)
 
         cur.execute(statement, values)
         indb = cur.fetchone()
 
         if indb is None:
-            response = {"status": StatusCodes["api_error"], "results": "song id ou parant_comment_id errados"}
+            response = {"status": StatusCodes["api_error"],
+                        "results": "song id ou parant_comment_id errados"}
             return flask.jsonify(response)
 
         # begin the transaction
@@ -1488,7 +1535,8 @@ def add_comment_comment(song_ismn, parent_comment_id):
         indb = cur.fetchone()
 
         if indb is None:
-            response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+            response = {
+                "status": StatusCodes["api_error"], "results": "Invalid token"}
             return flask.jsonify(response)
 
         statement = "SELECT id FROM comment WHERE id = %s"
@@ -1529,7 +1577,8 @@ def add_comment_comment(song_ismn, parent_comment_id):
         logger.error(
             f"POST /dbproj/comments/{song_ismn}/{parent_comment_id} - error: {error}"
         )
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+        response = {
+            "status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
         cur.execute("ROLLBACK;")
@@ -1558,7 +1607,8 @@ def monthly_report(year, month):
 
     try:
         # o id está guardado no credentials
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+        credentials = jwt.decode(
+            payload["token"], secret_key, algorithms="HS256")
 
     except jwt.exceptions.ExpiredSignatureError:
         response = {
@@ -1567,7 +1617,8 @@ def monthly_report(year, month):
         }
         return flask.jsonify(response)
 
-    init_date = datetime.datetime(int(year) - 1, int(month), 1).strftime("%Y-%m-%d")
+    init_date = datetime.datetime(
+        int(year) - 1, int(month), 1).strftime("%Y-%m-%d")
     end_date = datetime.datetime(int(year), int(month), 1).strftime("%Y-%m-%d")
 
     conn = db_connection()
@@ -1618,7 +1669,8 @@ def monthly_report(year, month):
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"GET /dbproj/song/{year}{month} - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+        response = {
+            "status": StatusCodes["internal_error"], "errors": str(error)}
 
     finally:
         if conn is not None:

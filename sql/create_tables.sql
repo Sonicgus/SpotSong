@@ -88,10 +88,11 @@ CREATE TABLE album (
 CREATE TABLE card (
 	id			 BIGSERIAL,
 	code			 VARCHAR(16) NOT NULL,
-	expire		 TIMESTAMP NOT NULL,
-	amount		 INTEGER NOT NULL,
+	expire			 TIMESTAMP NOT NULL,
+	amount			 INTEGER NOT NULL,
 	type			 INTEGER NOT NULL,
-	administrator_users_id BIGINT NOT NULL,
+	consumer_person_users_id BIGINT,
+	administrator_users_id	 BIGINT NOT NULL,
 	PRIMARY KEY(id)
 );
 
@@ -157,7 +158,8 @@ ALTER TABLE person ADD CONSTRAINT person_fk1 FOREIGN KEY (users_id) REFERENCES u
 ALTER TABLE album ADD CONSTRAINT album_fk1 FOREIGN KEY (artist_person_users_id) REFERENCES artist(person_users_id);
 ALTER TABLE album ADD CONSTRAINT album_fk2 FOREIGN KEY (label_id) REFERENCES label(id);
 ALTER TABLE card ADD UNIQUE (code);
-ALTER TABLE card ADD CONSTRAINT card_fk1 FOREIGN KEY (administrator_users_id) REFERENCES administrator(users_id);
+ALTER TABLE card ADD CONSTRAINT card_fk1 FOREIGN KEY (consumer_person_users_id) REFERENCES consumer(person_users_id);
+ALTER TABLE card ADD CONSTRAINT card_fk2 FOREIGN KEY (administrator_users_id) REFERENCES administrator(users_id);
 ALTER TABLE view ADD CONSTRAINT view_fk1 FOREIGN KEY (song_ismn) REFERENCES song(ismn);
 ALTER TABLE view ADD CONSTRAINT view_fk2 FOREIGN KEY (consumer_person_users_id) REFERENCES consumer(person_users_id);
 ALTER TABLE history_card ADD CONSTRAINT history_card_fk1 FOREIGN KEY (card_id) REFERENCES card(id);
