@@ -782,6 +782,479 @@ def detail_artist(artist_id):
 
     return flask.jsonify(response)
 
+#
+# POST
+# http://localhost:8080/dbproj/subcription
+#
+@app.route("/dbproj/subcription", methods=["POST"])
+def subscribe_premium():
+    logger.info("POST /dbproj/subcription")
+    payload = flask.request.get_json()
+
+    logger.debug(f"POST /dbproj/subcription - payload: {payload}")
+
+    # validate every argument:
+    if "period" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "period value not in payload",
+        }
+        return flask.jsonify(response)
+
+    if "cards" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "cards not in payload",
+        }
+        return flask.jsonify(response)
+
+    if "token" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token value not in payload",
+        }
+        return flask.jsonify(response)
+
+    try:
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token invalido. tente autenticar novamente",
+        }
+        return flask.jsonify(response)
+
+    if "user_id" not in credentials:
+        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        return flask.jsonify(response)
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    today = datetime.datetime.now()
+
+    # buscar o preço do plano
+
+    statement = "SELECT price, days_period, id FROM plan WHERE name = %s AND last_update <= %s ORDER BY last_update DESC LIMIT 1;"
+    values = (payload["period"], today)
+
+    cur.execute(statement, values)
+    all = cur.fetchone()
+
+    price = all[0]
+    days_period = all[1]
+    plan_id = all[2]
+
+    if price is None:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "Plano indisponivel",
+        }
+        return flask.jsonify(response)
+
+    # verificar se é já subscrito
+
+    statement = "SELECT end_date FROM subscription WHERE end_date >= %s ORDER BY end_date DESC LIMIT 1"
+    values = (today,)
+    cur.execute(statement, values)
+    res = cur.fetchone()
+
+    sub_end = datetime.timedelta(days=0)
+
+    if res is not None:
+        sub_end = res[0]
+
+    try:
+        cur.execute("LOCK TABLE card IN EXCLUSIVE MODE;")
+        cur.execute("LOCK TABLE subscription IN EXCLUSIVE MODE;")
+        cur.execute("LOCK TABLE history_card IN EXCLUSIVE MODE;")
+        # begin the transaction
+        cur.execute("BEGIN TRANSACTION;")
+
+        statement = "SELECT id, amount FROM card WHERE expire >= %s AND code = ANY(%s) AND amount > 0 ORDER BY expire;"
+        values = (
+            today,
+            payload["cards"],
+        )
+        cur.execute(statement, values)
+        cards = cur.fetchall()
+
+        if cards is None:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "Saldo indisponivel",
+            }
+            return flask.jsonify(response)
+
+        statement = "INSERT INTO subscription (init_date, end_date, purchase_date, plan_id, consumer_person_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
+        sub_end_timedelta = sub_end - datetime.datetime.now()
+
+        values = (
+            sub_end,
+            today + sub_end_timedelta + datetime.timedelta(days=days_period),
+            today,
+            plan_id,
+            credentials["user_id"],
+        )
+
+        cur.execute(statement, values)
+        sub_id = cur.fetchone()[0]
+
+        for card in cards:
+            aux = price
+            price -= card[1]
+
+            if price < 0:
+                statement = "INSERT INTO history_card (cost, card_id, subscription_id) VALUES (%s, %s, %s);"
+                values = (aux, card[0], sub_id)
+                cur.execute(statement, values)
+
+                statement = "UPDATE card SET amount = %s WHERE id = %s;"
+                values = (-price, card[0])
+                cur.execute(statement, values)
+                break
+
+            statement = "INSERT INTO history_card (cost, card_id, subscription_id) VALUES (%s, %s, %s);"
+            values = (card[1], card[0], sub_id)
+
+            statement = "UPDATE card SET amount = 0 WHERE id = %s;"
+            values = card[0]
+
+            if price == 0:
+                break
+
+        if price > 0:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "Saldo indisponivel",
+            }
+            return flask.jsonify(response)
+
+        # commit the transaction
+        cur.execute("COMMIT;")
+
+        response = {"status": StatusCodes["success"], "results": sub_id}
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f"POST /dbproj/subcription - error: {error}")
+        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+
+        # an error occurred, rollback
+        cur.execute("ROLLBACK;")
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
+
+#
+# POST
+#
+# Add a new playlist in a JSON payload
+#
+# To use it, you need to use postman or curl:
+#
+# curl -X POST http://localhost:8080/dbproj/playlist -H 'Content-Type: application/json' -d '{"comment": "comment_details", "consumer_person_users_id": 1}'
+#
+@app.route("/dbproj/playlist", methods=["POST"])
+def add_playlist():
+    logger.info(f"POST /dbproj/playlist")
+    payload = flask.request.get_json()
+
+    logger.debug(f"POST /dbproj/playlist - payload: {payload}")
+
+    # validate every argument
+    if "playlist_name" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "playlist_name value not in payload",
+        }
+        return flask.jsonify(response)
+
+    if "visibility" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "visibility value not in payload",
+        }
+        return flask.jsonify(response)
+
+    if "songs" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "songs value not in payload",
+        }
+        return flask.jsonify(response)
+
+    if "token" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token value not in payload",
+        }
+        return flask.jsonify(response)
+
+    try:
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token invalido. tente autenticar novamente",
+        }
+        return flask.jsonify(response)
+
+    if "user_id" not in credentials:
+        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        return flask.jsonify(response)
+
+    visibilidade = ""
+
+    if payload["visibility"] == "private":
+        visibilidade = "true"
+    elif payload["visibility"] == "public":
+        visibilidade = "false"
+    else:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "invalid visibility",
+        }
+        return flask.jsonify(response)
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    try:
+        # begin the transaction
+        cur.execute("BEGIN TRANSACTION;")
+
+        statement = "SELECT person_users_id FROM consumer WHERE person_users_id = %s"
+        values = (credentials["user_id"],)
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+
+        print(indb)
+
+        if indb is None:
+            response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+            return flask.jsonify(response)
+
+        # parameterized queries, good for security and performance
+        statement = "INSERT INTO playlist (name, is_private, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
+        values = (payload["playlist_name"], visibilidade, credentials["user_id"])
+        cur.execute(statement, values)
+
+        playlist_id = cur.fetchone()[0]
+
+        for song in payload["songs"]:
+            statement = (
+                "INSERT INTO playlist_song (song_ismn, playlist_id) VALUES (%s, %s);"
+            )
+
+            values = (song, playlist_id)
+
+            cur.execute(statement, values)
+
+        # commit the transaction
+        cur.execute("COMMIT;")
+
+        response = {
+            "status": StatusCodes["success"],
+            "results": f"Inserted playlist {playlist_id}",
+        }
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f"POST /dbproj/playlist - error: {error}")
+        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+
+        # an error occurred, rollback
+        cur.execute("ROLLBACK;")
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
+
+@app.route("/dbproj/<song_id>", methods=["PUT"])
+def add_view(song_id):
+    payload = flask.request.get_json()
+    logger.debug(f"PUT /dbproj/{song_id} - payload: {payload}")
+
+    if "token" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token value not in payload",
+        }
+        return flask.jsonify(response)
+
+    try:
+        # o id está guardado no credentials
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token invalido. tente autenticar novamente",
+        }
+        return flask.jsonify(response)
+
+    # verificar se user_id está em credentials
+    if "user_id" not in credentials:
+        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        return flask.jsonify(response)
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("BEGIN TRANSACTION;")
+
+        cur.execute("SELECT * FROM song WHERE ismn = %s;", (song_id,))
+        song = cur.fetchone()
+
+        if song is None:
+            conn.close()
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "Song is not in database",
+            }
+            return flask.jsonify(response)
+
+        statement = "INSERT INTO view (date_view, song_ismn, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
+
+        values = (datetime.datetime.now(), song_id, credentials["user_id"])
+
+        cur.execute(statement, values)
+        view_id = cur.fetchone()[0]
+
+        response = {
+            "status": StatusCodes["success"],
+            "results": {
+                "view_id": view_id,
+                "message": "Song view added successfully",
+            },
+        }
+
+        cur.execute("COMMIT;")
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f"PUT /dbproj/{song_id} - error: {error}")
+        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+
+        # an error occurred, rollback
+        cur.execute("ROLLBACK;")
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
+
+#
+# POST
+#
+@app.route("/dbproj/card", methods=["POST"])
+def generate_cards():
+    logger.info("POST /dbproj/card")
+    payload = flask.request.get_json()
+
+    logger.debug(f"POST /dbproj/card - payload: {payload}")
+
+    # validate every argument:
+    if "number_cards" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "number_cards value not in payload",
+        }
+        return flask.jsonify(response)
+
+    if "card_price" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "card_price value not in payload",
+        }
+        return flask.jsonify(response)
+
+    if "token" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token value not in payload",
+        }
+        return flask.jsonify(response)
+
+    try:
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token invalido. tente autenticar novamente",
+        }
+        return flask.jsonify(response)
+
+    if "user_id" not in credentials:
+        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        return flask.jsonify(response)
+
+    amount = 0
+
+    if payload["card_price"] == 10:
+        amount = 10
+    elif payload["card_price"] == 25:
+        amount = 25
+    elif payload["card_price"] == 50:
+        amount = 50
+    else:
+        response = {"status": StatusCodes["api_error"], "results": "Invalid card_price"}
+        return flask.jsonify(response)
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    chars = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890"
+
+    try:
+        # begin the transaction
+        cur.execute("BEGIN TRANSACTION;")
+
+        cards = []
+        for i in range(int(payload["number_cards"])):
+            statement = "INSERT INTO card (code, expire, amount, type, administrator_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
+            values = (
+                "".join(random.choices(chars, k=16)),
+                datetime.datetime.now() + datetime.timedelta(days=30),
+                amount,
+                amount,
+                credentials["user_id"],
+            )
+
+            cur.execute(statement, values)
+            card_id = cur.fetchone()[0]
+            cards.append(card_id)
+
+        # commit the transaction
+        cur.execute("COMMIT;")
+
+        response = {"status": StatusCodes["success"], "results": cards}
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f"POST /dbproj/card - error: {error}")
+        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+
+        # an error occurred, rollback
+        cur.execute("ROLLBACK;")
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
 
 #
 # POST
@@ -995,478 +1468,16 @@ def add_comment_comment(song_ismn, parent_comment_id):
     return flask.jsonify(response)
 
 
-#
-# POST
-#
-# Add a new playlist in a JSON payload
-#
-# To use it, you need to use postman or curl:
-#
-# curl -X POST http://localhost:8080/dbproj/playlist -H 'Content-Type: application/json' -d '{"comment": "comment_details", "consumer_person_users_id": 1}'
-#
-@app.route("/dbproj/playlist", methods=["POST"])
-def add_playlist():
-    logger.info(f"POST /dbproj/playlist")
-    payload = flask.request.get_json()
 
-    logger.debug(f"POST /dbproj/playlist - payload: {payload}")
 
-    # validate every argument
-    if "playlist_name" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "playlist_name value not in payload",
-        }
-        return flask.jsonify(response)
 
-    if "visibility" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "visibility value not in payload",
-        }
-        return flask.jsonify(response)
 
-    if "songs" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "songs value not in payload",
-        }
-        return flask.jsonify(response)
 
-    if "token" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token value not in payload",
-        }
-        return flask.jsonify(response)
 
-    try:
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
 
-    except jwt.exceptions.ExpiredSignatureError:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token invalido. tente autenticar novamente",
-        }
-        return flask.jsonify(response)
 
-    if "user_id" not in credentials:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
-        return flask.jsonify(response)
 
-    visibilidade = ""
 
-    if payload["visibility"] == "private":
-        visibilidade = "true"
-    elif payload["visibility"] == "public":
-        visibilidade = "false"
-    else:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "invalid visibility",
-        }
-        return flask.jsonify(response)
-
-    conn = db_connection()
-    cur = conn.cursor()
-
-    try:
-        # begin the transaction
-        cur.execute("BEGIN TRANSACTION;")
-
-        statement = "SELECT person_users_id FROM consumer WHERE person_users_id = %s"
-        values = (credentials["user_id"],)
-
-        cur.execute(statement, values)
-        indb = cur.fetchone()
-
-        print(indb)
-
-        if indb is None:
-            response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
-            return flask.jsonify(response)
-
-        # parameterized queries, good for security and performance
-        statement = "INSERT INTO playlist (name, is_private, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
-        values = (payload["playlist_name"], visibilidade, credentials["user_id"])
-        cur.execute(statement, values)
-
-        playlist_id = cur.fetchone()[0]
-
-        for song in payload["songs"]:
-            statement = (
-                "INSERT INTO playlist_song (song_ismn, playlist_id) VALUES (%s, %s);"
-            )
-
-            values = (song, playlist_id)
-
-            cur.execute(statement, values)
-
-        # commit the transaction
-        cur.execute("COMMIT;")
-
-        response = {
-            "status": StatusCodes["success"],
-            "results": f"Inserted playlist {playlist_id}",
-        }
-
-    except (Exception, psycopg.DatabaseError) as error:
-        logger.error(f"POST /dbproj/playlist - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
-
-        # an error occurred, rollback
-        cur.execute("ROLLBACK;")
-
-    finally:
-        if conn is not None:
-            conn.close()
-
-    return flask.jsonify(response)
-
-
-#
-# POST
-#
-@app.route("/dbproj/card", methods=["POST"])
-def generate_cards():
-    logger.info("POST /dbproj/card")
-    payload = flask.request.get_json()
-
-    logger.debug(f"POST /dbproj/card - payload: {payload}")
-
-    # validate every argument:
-    if "number_cards" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "number_cards value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "card_price" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "card_price value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "token" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token value not in payload",
-        }
-        return flask.jsonify(response)
-
-    try:
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
-
-    except jwt.exceptions.ExpiredSignatureError:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token invalido. tente autenticar novamente",
-        }
-        return flask.jsonify(response)
-
-    if "user_id" not in credentials:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
-        return flask.jsonify(response)
-
-    amount = 0
-
-    if payload["card_price"] == 10:
-        amount = 10
-    elif payload["card_price"] == 25:
-        amount = 25
-    elif payload["card_price"] == 50:
-        amount = 50
-    else:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid card_price"}
-        return flask.jsonify(response)
-
-    conn = db_connection()
-    cur = conn.cursor()
-
-    chars = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890"
-
-    try:
-        # begin the transaction
-        cur.execute("BEGIN TRANSACTION;")
-
-        cards = []
-        for i in range(int(payload["number_cards"])):
-            statement = "INSERT INTO card (code, expire, amount, type, administrator_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
-            values = (
-                "".join(random.choices(chars, k=16)),
-                datetime.datetime.now() + datetime.timedelta(days=30),
-                amount,
-                amount,
-                credentials["user_id"],
-            )
-
-            cur.execute(statement, values)
-            card_id = cur.fetchone()[0]
-            cards.append(card_id)
-
-        # commit the transaction
-        cur.execute("COMMIT;")
-
-        response = {"status": StatusCodes["success"], "results": cards}
-
-    except (Exception, psycopg.DatabaseError) as error:
-        logger.error(f"POST /dbproj/card - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
-
-        # an error occurred, rollback
-        cur.execute("ROLLBACK;")
-
-    finally:
-        if conn is not None:
-            conn.close()
-
-    return flask.jsonify(response)
-
-
-#
-# POST
-# http://localhost:8080/dbproj/subcription
-#
-@app.route("/dbproj/subcription", methods=["POST"])
-def subscribe_premium():
-    logger.info("POST /dbproj/subcription")
-    payload = flask.request.get_json()
-
-    logger.debug(f"POST /dbproj/subcription - payload: {payload}")
-
-    # validate every argument:
-    if "period" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "period value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "cards" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "cards not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "token" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token value not in payload",
-        }
-        return flask.jsonify(response)
-
-    try:
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
-
-    except jwt.exceptions.ExpiredSignatureError:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token invalido. tente autenticar novamente",
-        }
-        return flask.jsonify(response)
-
-    if "user_id" not in credentials:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
-        return flask.jsonify(response)
-
-    conn = db_connection()
-    cur = conn.cursor()
-
-    today = datetime.datetime.now()
-
-    # buscar o preço do plano
-
-    statement = "SELECT price, days_period, id FROM plan WHERE name = %s AND last_update <= %s ORDER BY last_update DESC LIMIT 1;"
-    values = (payload["period"], today)
-
-    cur.execute(statement, values)
-    all = cur.fetchone()
-
-    price = all[0]
-    days_period = all[1]
-    plan_id = all[2]
-
-    if price is None:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "Plano indisponivel",
-        }
-        return flask.jsonify(response)
-
-    # verificar se é já subscrito
-
-    statement = "SELECT end_date FROM subscription WHERE end_date >= %s ORDER BY end_date DESC LIMIT 1"
-    values = (today,)
-    cur.execute(statement, values)
-    res = cur.fetchone()
-
-    sub_end = datetime.timedelta(days=0)
-
-    if res is not None:
-        sub_end = res[0]
-
-    try:
-        cur.execute("LOCK TABLE card IN EXCLUSIVE MODE;")
-        cur.execute("LOCK TABLE subscription IN EXCLUSIVE MODE;")
-        cur.execute("LOCK TABLE history_card IN EXCLUSIVE MODE;")
-        # begin the transaction
-        cur.execute("BEGIN TRANSACTION;")
-
-        statement = "SELECT id, amount FROM card WHERE expire >= %s AND code = ANY(%s) AND amount > 0 ORDER BY expire;"
-        values = (
-            today,
-            payload["cards"],
-        )
-        cur.execute(statement, values)
-        cards = cur.fetchall()
-
-        if cards is None:
-            response = {
-                "status": StatusCodes["api_error"],
-                "results": "Saldo indisponivel",
-            }
-            return flask.jsonify(response)
-
-        statement = "INSERT INTO subscription (init_date, end_date, purchase_date, plan_id, consumer_person_users_id) VALUES (%s, %s, %s, %s, %s) RETURNING id;"
-        sub_end_timedelta = sub_end - datetime.datetime.now()
-
-        values = (
-            sub_end,
-            today + sub_end_timedelta + datetime.timedelta(days=days_period),
-            today,
-            plan_id,
-            credentials["user_id"],
-        )
-
-        cur.execute(statement, values)
-        sub_id = cur.fetchone()[0]
-
-        for card in cards:
-            aux = price
-            price -= card[1]
-
-            if price < 0:
-                statement = "INSERT INTO history_card (cost, card_id, subscription_id) VALUES (%s, %s, %s);"
-                values = (aux, card[0], sub_id)
-                cur.execute(statement, values)
-
-                statement = "UPDATE card SET amount = %s WHERE id = %s;"
-                values = (-price, card[0])
-                cur.execute(statement, values)
-                break
-
-            statement = "INSERT INTO history_card (cost, card_id, subscription_id) VALUES (%s, %s, %s);"
-            values = (card[1], card[0], sub_id)
-
-            statement = "UPDATE card SET amount = 0 WHERE id = %s;"
-            values = card[0]
-
-            if price == 0:
-                break
-
-        if price > 0:
-            response = {
-                "status": StatusCodes["api_error"],
-                "results": "Saldo indisponivel",
-            }
-            return flask.jsonify(response)
-
-        # commit the transaction
-        cur.execute("COMMIT;")
-
-        response = {"status": StatusCodes["success"], "results": sub_id}
-
-    except (Exception, psycopg.DatabaseError) as error:
-        logger.error(f"POST /dbproj/subcription - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
-
-        # an error occurred, rollback
-        cur.execute("ROLLBACK;")
-
-    finally:
-        if conn is not None:
-            conn.close()
-
-    return flask.jsonify(response)
-
-
-@app.route("/dbproj/<song_id>", methods=["PUT"])
-def add_view(song_id):
-    payload = flask.request.get_json()
-    logger.debug(f"PUT /dbproj/{song_id} - payload: {payload}")
-
-    if "token" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token value not in payload",
-        }
-        return flask.jsonify(response)
-
-    try:
-        # o id está guardado no credentials
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
-
-    except jwt.exceptions.ExpiredSignatureError:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token invalido. tente autenticar novamente",
-        }
-        return flask.jsonify(response)
-
-    # verificar se user_id está em credentials
-    if "user_id" not in credentials:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
-        return flask.jsonify(response)
-
-    conn = db_connection()
-    cur = conn.cursor()
-
-    try:
-        cur.execute("BEGIN TRANSACTION;")
-
-        cur.execute("SELECT * FROM song WHERE ismn = %s;", (song_id,))
-        song = cur.fetchone()
-
-        if song is None:
-            conn.close()
-            response = {
-                "status": StatusCodes["api_error"],
-                "results": "Song is not in database",
-            }
-            return flask.jsonify(response)
-
-        statement = "INSERT INTO view (date_view, song_ismn, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
-
-        values = (datetime.datetime.now(), song_id, credentials["user_id"])
-
-        cur.execute(statement, values)
-        view_id = cur.fetchone()[0]
-
-        response = {
-            "status": StatusCodes["success"],
-            "results": {
-                "view_id": view_id,
-                "message": "Song view added successfully",
-            },
-        }
-
-        cur.execute("COMMIT;")
-
-    except (Exception, psycopg.DatabaseError) as error:
-        logger.error(f"PUT /dbproj/{song_id} - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
-
-        # an error occurred, rollback
-        cur.execute("ROLLBACK;")
-
-    finally:
-        if conn is not None:
-            conn.close()
-
-    return flask.jsonify(response)
 
 
 #
