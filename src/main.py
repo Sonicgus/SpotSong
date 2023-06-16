@@ -782,6 +782,7 @@ def detail_artist(artist_id):
 
     return flask.jsonify(response)
 
+
 #
 # POST
 # http://localhost:8080/dbproj/subcription
@@ -1466,18 +1467,6 @@ def add_comment_comment(song_ismn, parent_comment_id):
             conn.close()
 
     return flask.jsonify(response)
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #
