@@ -85,16 +85,8 @@ def landing_page():
     """
 
 
-#
-# POST
-#
-# Add a new user in a JSON payload
-#
-# To use it, you need to use postman or curl:
-#
-# curl -X POST http://localhost:8080/dbproj/user -H 'Content-Type: application/json' -d '{'username': 'username',
-# 'email': email, 'password': 'password'}'
-#
+# User Registration
+# curl -X POST http://localhost:8080/dbproj/user
 @app.route("/dbproj/user", methods=["POST"])
 def add_user():
     logger.info("POST /dbproj/user")
@@ -245,18 +237,8 @@ def add_user():
     return flask.jsonify(response)
 
 
-#
-# PUT
-#
-# Authenticate a User based on a JSON payload
-#
-# To use it, you need to use postman or curl:
-#
-# curl -X PUT http://localhost:8080/dbproj/user -H 'Content-Type: application/json' -d '{'username': 'username',
-# 'password': 'password'}'
-#
-
-
+# User Authentication
+# PUT http://localhost:8080/dbproj/user
 @app.route("/dbproj/user", methods=["PUT"])
 def authenticate_user():
     logger.info("PUT /dbproj/user")
@@ -323,15 +305,8 @@ def authenticate_user():
     return flask.jsonify(response)
 
 
-#
-# POST
-#
-# Add a new song in a JSON payload
-#
-# To use it, you need to use postman or curl:
-#
-# curl -X POST http://localhost:8080/dbproj/song -H 'Content-Type: application/json' -d '{“song_name”: “name”, “release_date”: “date”, “publisher”: publisher_id, “other_artists”: [artist_id1, artist_id2, (…)]}, (…)}
-#
+# Add song
+# POST http://localhost:8080/dbproj/song
 @app.route("/dbproj/song", methods=["POST"])
 def add_song():
     logger.info("POST /dbproj/song")
@@ -474,15 +449,8 @@ def add_song():
     return flask.jsonify(response)
 
 
-#
-# POST
-#
-# Add a new album in a JSON payload
-#
-# To use it, you need to use postman or curl:
-#
-# curl -X POST http://localhost:8080/dbproj/album -H 'Content-Type: application/json' -d '{“album_name”: “name”, “release_date”: “date”, “publisher”: publisher_id, “other_artists”: [artist_id1, artist_id2, (…)]}, (…)}
-#
+# Add album
+# POST http://localhost:8080/dbproj/album
 @app.route("/dbproj/album", methods=["POST"])
 def add_album():
     logger.info("POST /dbproj/album")
@@ -648,15 +616,8 @@ def add_album():
     return flask.jsonify(response)
 
 
-#
-# GET
-#
-# Search a song in a JSON payload
-#
-# To use it, you need to use postman or curl:
-#
-# curl -X GET http://localhost:8080/dbproj/song/{keyword} -H 'Content-Type: application/json' -d
-#
+# Search song
+# GET http://localhost:8080/dbproj/song/{keyword}
 @app.route("/dbproj/song/<keyword>", methods=["GET"])
 def search_song(keyword):
     logger.info("GET /dbproj/song/{keyword}")
@@ -712,15 +673,8 @@ def search_song(keyword):
     return flask.jsonify(response)
 
 
-#
-# GET
-#
-# Search a song in a JSON payload
-#
-# To use it, you need to use postman or curl:
-#
-# curl -X GET http://localhost:8080/dbproj/artist_info/artist_id -H 'Content-Type: application/json' -d
-#
+# Detail artist
+# GET http://localhost:8080/dbproj/artist_info/{artist_id}
 @app.route("/dbproj/artist_info/<artist_id>", methods=["GET"])
 def detail_artist(artist_id):
     payload = flask.request.get_json()
@@ -835,10 +789,8 @@ def detail_artist(artist_id):
     return flask.jsonify(response)
 
 
-#
-# POST
-# http://localhost:8080/dbproj/subcription
-#
+# Subscribe to Premium
+# POST http://localhost:8080/dbproj/subcription
 @app.route("/dbproj/subcription", methods=["POST"])
 def subscribe_premium():
     logger.info("POST /dbproj/subcription")
@@ -994,15 +946,8 @@ def subscribe_premium():
     return flask.jsonify(response)
 
 
-#
-# POST
-#
-# Add a new playlist in a JSON payload
-#
-# To use it, you need to use postman or curl:
-#
-# curl -X POST http://localhost:8080/dbproj/playlist -H 'Content-Type: application/json' -d '{"comment": "comment_details", "consumer_person_users_id": 1}'
-#
+# Create Playlist
+# POST http://localhost:8080/dbproj/playlist
 @app.route("/dbproj/playlist", methods=["POST"])
 def add_playlist():
     logger.info(f"POST /dbproj/playlist")
@@ -1104,6 +1049,8 @@ def add_playlist():
     return flask.jsonify(response)
 
 
+# Play song
+# POST http://localhost:8080/dbproj/{song_ismn}
 @app.route("/dbproj/<song_id>", methods=["PUT"])
 def add_view(song_id):
     payload = flask.request.get_json()
@@ -1180,9 +1127,9 @@ def add_view(song_id):
     return flask.jsonify(response)
 
 
-#
-# POST
-#
+
+# Generate pre-paid cards
+# POST http://localhost:8080/dbproj/card
 @app.route("/dbproj/card", methods=["POST"])
 def generate_cards():
     logger.info("POST /dbproj/card")
@@ -1269,15 +1216,8 @@ def generate_cards():
     return flask.jsonify(response)
 
 
-#
-# POST
-#
-# Add a new comment for a song in a JSON payload
-#
-# To use it, you need to use postman or curl:
-#
-# curl -X POST http://localhost:8080/dbproj/comments/{song_ismn} -H 'Content-Type: application/json' -d '{"comment": "comment_details", "consumer_person_users_id": 1}'
-#
+# Leave	comment/feedback of an song
+# POST http://localhost:8080/dbproj/comments/{song_ismn}
 @app.route("/dbproj/comments/<song_ismn>", methods=["POST"])
 def add_comment(song_ismn):
     logger.info(f"POST /dbproj/comments/{song_ismn}")
@@ -1357,15 +1297,8 @@ def add_comment(song_ismn):
     return flask.jsonify(response)
 
 
-#
-# POST
-#
-# Add a new comment for a comment parent in a JSON payload
-#
-# To use it, you need to use postman or curl:
-#
-# curl -X POST http://localhost:8080/dbproj/comments/{song_ismn} -H 'Content-Type: application/json' -d '{"comment": "comment_details", "consumer_person_users_id": 1}'
-#
+# Leave	comment/feedback of an comment
+# POST http://localhost:8080/dbproj/comments/{song_ismn}/{parent_comment_id}
 @app.route("/dbproj/comments/<song_ismn>/<parent_comment_id>", methods=["POST"])
 def add_comment_comment(song_ismn, parent_comment_id):
     logger.info(f"POST /dbproj/comments/{song_ismn}/{parent_comment_id}")
@@ -1469,15 +1402,8 @@ def add_comment_comment(song_ismn, parent_comment_id):
     return flask.jsonify(response)
 
 
-#
-# GET
-#
-# Search a song in a JSON payload
-#
-# To use it, you need to use postman or curl:
-#
-# curl -X GET http://localhost:8080/dbproj/report/year-month -H 'Content-Type: application/json' -d
-#
+# Generate a monthly report
+# GET - http://localhost:8080/dbproj/report/year-month
 @app.route("/dbproj/report/<year>-<month>", methods=["GET"])
 def monthly_report(year, month):
     payload = flask.request.get_json()
