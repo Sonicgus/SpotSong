@@ -1459,8 +1459,6 @@ def add_comment_comment(song_ismn, parent_comment_id):
         cur.execute(statement, values)
         indb = cur.fetchone()
 
-        print(indb)
-
         if indb is None:
             response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
             return flask.jsonify(response)
