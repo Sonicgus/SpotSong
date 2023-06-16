@@ -988,10 +988,7 @@ def subscribe_premium():
         cur.execute("BEGIN TRANSACTION;")
 
         statement = "SELECT id, amount FROM card WHERE expire >= %s AND code = ANY(%s) AND amount > 0 AND (consumer_person_users_id = %s OR consumer_person_users_id IS NULL)  ORDER BY expire;"
-        values = (
-            today,
-            payload["cards"], credentials["user_id"]
-        )
+        values = (today, payload["cards"], credentials["user_id"])
         cur.execute(statement, values)
         cards = cur.fetchall()
 
@@ -1026,7 +1023,7 @@ def subscribe_premium():
                 cur.execute(statement, values)
 
                 statement = "UPDATE card SET amount = %s, consumer_person_users_id = %s  WHERE id = %s;"
-                values = (-price,credentials["user_id"], card[0])
+                values = (-price, credentials["user_id"], card[0])
                 cur.execute(statement, values)
                 break
 
@@ -1034,7 +1031,10 @@ def subscribe_premium():
             values = (card[1], card[0], sub_id)
 
             statement = "UPDATE card SET amount = 0, consumer_person_users_id = %s WHERE id = %s;"
-            values = (credentials["user_id"],card[0],)
+            values = (
+                credentials["user_id"],
+                card[0],
+            )
 
             if price == 0:
                 break
@@ -1126,13 +1126,18 @@ def add_playlist():
         cur.execute("BEGIN TRANSACTION;")
 
         statement = "SELECT id FROM subscription WHERE end_date >= %s AND consumer_person_users_id = %s"
-        values = (today, credentials["user_id"],)
+        values = (
+            today,
+            credentials["user_id"],
+        )
         cur.execute(statement, values)
         res = cur.fetchone()
 
         if res is None:
-            response = {"status": StatusCodes["api_error"],
-                        "results": "Você nao tem permissoes para criar playlists."}
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "Você nao tem permissoes para criar playlists.",
+            }
             return flask.jsonify(response)
 
         # parameterized queries, good for security and performance
@@ -1151,7 +1156,9 @@ def add_playlist():
 
             if res is None:
                 response = {
-                    "status": StatusCodes["api_error"], "results": f"Você musica com o id {song} nao existe ."}
+                    "status": StatusCodes["api_error"],
+                    "results": f"Você musica com o id {song} nao existe .",
+                }
                 return flask.jsonify(response)
 
             statement = (
@@ -1523,8 +1530,10 @@ def add_comment_comment(song_ismn, parent_comment_id):
         indb = cur.fetchone()
 
         if indb is None:
-            response = {"status": StatusCodes["api_error"],
-                        "results": "song id ou parant_comment_id errados"}
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "song id ou parant_comment_id errados",
+            }
             return flask.jsonify(response)
 
         # begin the transaction
