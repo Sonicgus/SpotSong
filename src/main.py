@@ -508,7 +508,7 @@ def add_album():
                 "results": "Token inválido.",
             }
             return flask.jsonify(response)
-        
+
         statement = "SELECT publisher_id FROM label WHERE publisher_id = %s"
         values = (credentials["publisher_id"],)
 
@@ -552,7 +552,7 @@ def add_album():
                         }
                         cur.execute("ROLLBACK;")
                         return flask.jsonify(response)
-                    
+
                 statement = "SELECT publisher_id FROM label WHERE publisher_id = %s"
 
                 values = (song["publisher_id"],)
@@ -565,7 +565,7 @@ def add_album():
                         "results": "Token inválido.",
                     }
                     return flask.jsonify(response)
-        
+
                 statement = "INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn;"
                 values = (
                     song["song_name"],
@@ -581,9 +581,7 @@ def add_album():
 
                 if "other_artists" in song:
                     for artist_id in song["other_artists"]:
-                        statement = (
-                            "SELECT person_users_id FROM artist WHERE person_users_id = %s"
-                        )
+                        statement = "SELECT person_users_id FROM artist WHERE person_users_id = %s"
                         values = (artist_id,)
 
                         cur.execute(statement, values)
@@ -596,7 +594,6 @@ def add_album():
                             }
                             cur.execute("ROLLBACK;")
                             return flask.jsonify(response)
-
 
                         statement = "INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s);"
                         values = (
@@ -1189,7 +1186,7 @@ def add_view(song_id):
         if indb is None:
             response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
             return flask.jsonify(response)
-        
+
         cur.execute("BEGIN TRANSACTION;")
 
         cur.execute("SELECT * FROM song WHERE ismn = %s;", (song_id,))
@@ -1266,7 +1263,7 @@ def generate_cards():
     if "user_id" not in credentials:
         response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
         return flask.jsonify(response)
-    
+
     amount = 0
 
     if payload["card_price"] == 10:
@@ -1296,7 +1293,7 @@ def generate_cards():
                 "results": "Token inválido.",
             }
             return flask.jsonify(response)
-    
+
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
 
@@ -1564,7 +1561,7 @@ def monthly_report(year, month):
                 "results": "Token inválido.",
             }
             return flask.jsonify(response)
-        
+
         statement = """
         SELECT
         EXTRACT(MONTH FROM v.date_view) AS mes,
