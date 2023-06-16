@@ -1376,8 +1376,6 @@ def add_comment(song_ismn):
         cur.execute(statement, values)
         indb = cur.fetchone()
 
-        print(indb)
-
         if indb is None:
             response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
             return flask.jsonify(response)
@@ -1450,6 +1448,17 @@ def add_comment_comment(song_ismn, parent_comment_id):
     cur = conn.cursor()
 
     try:
+
+        statement = "SELECT id FROM comment WHERE song_ismn = %s AND id = %s"
+        values = (song_ismn,parent_comment_id)
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+
+        if indb is None:
+            response = {"status": StatusCodes["api_error"], "results": "song id ou parant_comment_id errados"}
+            return flask.jsonify(response)
+
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
 
@@ -1468,8 +1477,6 @@ def add_comment_comment(song_ismn, parent_comment_id):
 
         cur.execute(statement, values)
         indb2 = cur.fetchone()
-
-        print(indb2)
 
         if indb2 is None:
             response = {
