@@ -1452,12 +1452,25 @@ def monthly_report(year_month):
     cur = conn.cursor()
 
     statement = """
-    select genre, COUNT(song.genre) from view inner join song on song_ismn = ismn  where consumer_person_users_id = %s AND date_view >= %s AND date_view <= %s group by genre;
+    SELECT
+    EXTRACT(MONTH FROM v.date_view) AS mes,
+    s.genre,
+    COUNT(*) AS numero_de_reproducoes
+    FROM
+    view v
+    INNER JOIN
+    song s ON s.ismn = v.song_ismn
+    WHERE
+    v.consumer_person_users_id = %s
+    AND v.date_view >= %s
+    GROUP BY
+    mes, s.genre
+    ORDER BY
+    mes, s.genre;
     """
     values = (
         credentials["user_id"],
         datetime.datetime.now() - datetime.timedelta(days=12 * 30),
-        datetime.datetime.now() + datetime.timedelta(days=30),
     )
 
     try:
