@@ -180,7 +180,7 @@ def add_user():
             if res is None:
                 response = {
                     "status": StatusCodes["api_error"],
-                    "results": "token invalido. tente autenticar novamente",
+                    "results": "voce nao tem permissoes para isso",
                 }
                 cur.execute("ROLLBACK;")
                 return flask.jsonify(response)
