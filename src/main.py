@@ -114,6 +114,8 @@ def add_user():
     cur = conn.cursor()
 
     try:
+        cur.execute("LOCK TABLE users IN EXCLUSIVE MODE;")
+        cur.execute("LOCK TABLE artist IN EXCLUSIVE MODE;")
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
 
