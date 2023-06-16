@@ -254,31 +254,33 @@ def authenticate_user():
     logger.debug(f"PUT /dbproj/user - payload: {payload}")
 
     # validate every argument:
-    if "username" not in payload:
-        response = {
+    required_fields = ["username", "password"]
+    for field in required_fields:
+        if field not in payload:
+            response = {
             "status": StatusCodes["api_error"],
-            "results": "username is required to login",
-        }
-        return flask.jsonify(response)
-
-    if "password" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "password is required to login",
-        }
-        return flask.jsonify(response)
-
-    # parameterized queries, good for security and performance
-    statement = "SELECT id, password FROM users WHERE username = %s;"
-    values = (payload["username"],)
-
+            "results": f'{field} not in payload',
+            }
+            return flask.jsonify(response)
+    
     conn = db_connection()
     cur = conn.cursor()
 
     try:
+        # parameterized queries, good for security and performance
+        statement = "SELECT id, password FROM users WHERE username = %s;"
+        values = (payload["username"],)
         cur.execute(statement, values)
 
         row = cur.fetchone()
+
+        if row is None:
+            response = {
+            "status": StatusCodes["api_error"],
+            "results": 'username incorreto',
+            }
+            return flask.jsonify(response)
+
 
         if bcrypt.checkpw(payload["password"].encode("utf-8"), row[1].encode("utf-8")):
             response = {
