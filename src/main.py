@@ -1092,18 +1092,18 @@ def add_playlist():
     cur = conn.cursor()
 
     try:
+        today = datetime.datetime.now()
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
-
-        statement = "SELECT person_users_id FROM consumer WHERE person_users_id = %s"
-        values = (credentials["user_id"],)
-
+        
+        statement = "SELECT id FROM subscription WHERE end_date >= %s AND consumer_person_users_id = %s ORDER BY end_date DESC"
+        values = (today,credentials["user_id"],)
         cur.execute(statement, values)
-        indb = cur.fetchone()
+        res = cur.fetchone()
 
-        if indb is None:
-            response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
-            return flask.jsonify(response)
+        if res is None:
+                response = {"status": StatusCodes["api_error"], "results": "Você nao tem permissoes para criar playlists."}
+                return flask.jsonify(response)
 
         # parameterized queries, good for security and performance
         statement = "INSERT INTO playlist (name, is_private, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
