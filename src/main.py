@@ -628,10 +628,10 @@ def search_song(keyword):
     conn = db_connection()
     cur = conn.cursor()
 
-    # parameterized queries, good for security and performance
-    statement = f"SELECT s.ismn AS song_id, s.title AS song_title, a.artistic_name AS artist_name, al.id AS album_id FROM song s INNER JOIN artist_song sa ON s.ismn = sa.song_ismn INNER JOIN artist a ON sa.artist_person_users_id = a.person_users_id LEFT JOIN song_album als ON s.ismn = als.song_ismn LEFT JOIN album al ON als.album_id = al.id WHERE s.title LIKE '%{keyword}%'; "
-
     try:
+        # parameterized queries, good for security and performance
+        statement = f"SELECT s.ismn AS song_id, s.title AS song_title, a.artistic_name AS artist_name, al.id AS album_id FROM song s INNER JOIN artist_song sa ON s.ismn = sa.song_ismn INNER JOIN artist a ON sa.artist_person_users_id = a.person_users_id LEFT JOIN song_album als ON s.ismn = als.song_ismn LEFT JOIN album al ON als.album_id = al.id WHERE s.title LIKE '%{keyword}%'; "
+
         cur.execute(statement)
 
         all = cur.fetchall()
@@ -681,7 +681,7 @@ def detail_artist(artist_id):
     payload = flask.request.get_json()
     logger.info("GET /dbproj/song/{artist_id}")
 
-    logger.debug("GET /dbproj/song/{artist_id}")
+    logger.debug("GET /dbproj/song/{artist_id} - payload: {payload}")
 
     if "token" not in payload:
         response = {
@@ -709,42 +709,42 @@ def detail_artist(artist_id):
     conn = db_connection()
     cur = conn.cursor()
 
-    # parameterized queries, good for security and performance
-    statement = """
-    SELECT
-    artist.artistic_name,
-    song.ismn,
-    song_album.album_id,
-    NULL AS playlist_id
-    FROM
-    artist
-    JOIN song ON artist.person_users_id = song.artist_person_users_id
-    LEFT JOIN song_album ON song.ismn = song_album.song_ismn
-    WHERE
-    artist.person_users_id = %s
-
-    UNION
-
-    SELECT
-    artist.artistic_name,
-    song.ismn,
-    NULL AS album_id,
-    playlist_song.playlist_id
-    FROM
-    artist
-    JOIN song ON artist.person_users_id = song.artist_person_users_id
-    LEFT JOIN playlist_song ON song.ismn = playlist_song.song_ismn
-    LEFT JOIN playlist ON playlist_song.playlist_id = playlist.id
-    WHERE
-    artist.person_users_id = %s
-    AND (
-        (playlist.is_private IS NULL OR playlist.is_private = true) AND playlist.consumer_person_users_id = %s
-        OR playlist.is_private = false
-    );
-    """
-    values = (artist_id, artist_id, credentials["user_id"])
-
     try:
+
+        # parameterized queries, good for security and performance
+        statement = """
+        SELECT
+        artist.artistic_name,
+        song.ismn,
+        song_album.album_id,
+        NULL AS playlist_id
+        FROM
+        artist
+        JOIN song ON artist.person_users_id = song.artist_person_users_id
+        LEFT JOIN song_album ON song.ismn = song_album.song_ismn
+        WHERE
+        artist.person_users_id = %s
+
+        UNION
+
+        SELECT
+        artist.artistic_name,
+        song.ismn,
+        NULL AS album_id,
+        playlist_song.playlist_id
+        FROM
+        artist
+        JOIN song ON artist.person_users_id = song.artist_person_users_id
+        LEFT JOIN playlist_song ON song.ismn = playlist_song.song_ismn
+        LEFT JOIN playlist ON playlist_song.playlist_id = playlist.id
+        WHERE
+        artist.person_users_id = %s
+        AND (
+            (playlist.is_private IS NULL OR playlist.is_private = true) AND playlist.consumer_person_users_id = %s
+            OR playlist.is_private = false
+        );
+        """
+        values = (artist_id, artist_id, credentials["user_id"])
         cur.execute(statement, values)
 
         all = cur.fetchall()
@@ -826,40 +826,40 @@ def subscribe_premium():
     conn = db_connection()
     cur = conn.cursor()
 
-    today = datetime.datetime.now()
-
-    # buscar o preço do plano
-
-    statement = "SELECT price, days_period, id FROM plan WHERE name = %s AND last_update <= %s ORDER BY last_update DESC LIMIT 1;"
-    values = (payload["period"], today)
-
-    cur.execute(statement, values)
-    all = cur.fetchone()
-
-    price = all[0]
-    days_period = all[1]
-    plan_id = all[2]
-
-    if price is None:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "Plano indisponivel",
-        }
-        return flask.jsonify(response)
-
-    # verificar se é já subscrito
-
-    statement = "SELECT end_date FROM subscription WHERE end_date >= %s ORDER BY end_date DESC LIMIT 1"
-    values = (today,)
-    cur.execute(statement, values)
-    res = cur.fetchone()
-
-    sub_end = today
-
-    if res is not None:
-        sub_end = res[0]
-
     try:
+        today = datetime.datetime.now()
+
+        # buscar o preço do plano
+
+        statement = "SELECT price, days_period, id FROM plan WHERE name = %s AND last_update <= %s ORDER BY last_update DESC LIMIT 1;"
+        values = (payload["period"], today)
+
+        cur.execute(statement, values)
+        all = cur.fetchone()
+
+        price = all[0]
+        days_period = all[1]
+        plan_id = all[2]
+
+        if price is None:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "Plano indisponivel",
+            }
+            return flask.jsonify(response)
+
+        # verificar se é já subscrito
+
+        statement = "SELECT end_date FROM subscription WHERE end_date >= %s ORDER BY end_date DESC LIMIT 1"
+        values = (today,)
+        cur.execute(statement, values)
+        res = cur.fetchone()
+
+        sub_end = today
+
+        if res is not None:
+            sub_end = res[0]
+
         cur.execute("LOCK TABLE card IN EXCLUSIVE MODE;")
         cur.execute("LOCK TABLE subscription IN EXCLUSIVE MODE;")
         cur.execute("LOCK TABLE history_card IN EXCLUSIVE MODE;")
@@ -1434,27 +1434,27 @@ def monthly_report(year, month):
     conn = db_connection()
     cur = conn.cursor()
 
-    statement = """
-    SELECT
-    EXTRACT(MONTH FROM v.date_view) AS mes,
-    s.genre,
-    COUNT(*) AS numero_de_reproducoes
-    FROM
-    view v
-    INNER JOIN
-    song s ON s.ismn = v.song_ismn
-    WHERE
-    v.consumer_person_users_id = %s
-    AND v.date_view >= %s
-    AND v.date_view <= %s
-    GROUP BY
-    mes, s.genre
-    ORDER BY
-    mes, s.genre;
-    """
-    values = (credentials["user_id"], init_date, end_date)
-
     try:
+        statement = """
+        SELECT
+        EXTRACT(MONTH FROM v.date_view) AS mes,
+        s.genre,
+        COUNT(*) AS numero_de_reproducoes
+        FROM
+        view v
+        INNER JOIN
+        song s ON s.ismn = v.song_ismn
+        WHERE
+        v.consumer_person_users_id = %s
+        AND v.date_view >= %s
+        AND v.date_view <= %s
+        GROUP BY
+        mes, s.genre
+        ORDER BY
+        mes, s.genre;
+        """
+        values = (credentials["user_id"], init_date, end_date)
+
         response = {"status": StatusCodes["success"], "results": []}
 
         cur.execute(statement, values)
