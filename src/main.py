@@ -1096,7 +1096,7 @@ def add_playlist():
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
         
-        statement = "SELECT id FROM subscription WHERE end_date >= %s AND consumer_person_users_id = %s ORDER BY end_date DESC"
+        statement = "SELECT id FROM subscription WHERE end_date >= %s AND consumer_person_users_id = %s"
         values = (today,credentials["user_id"],)
         cur.execute(statement, values)
         res = cur.fetchone()
@@ -1113,6 +1113,15 @@ def add_playlist():
         playlist_id = cur.fetchone()[0]
 
         for song in payload["songs"]:
+            statement = "SELECT ismn FROM song WHERE ismn = %s"
+            values = (song,)
+            cur.execute(statement, values)
+            res = cur.fetchone()
+
+            if res is None:
+                response = {"status": StatusCodes["api_error"], "results": f"Você musica com o id {song} nao existe ."}
+                return flask.jsonify(response)
+            
             statement = (
                 "INSERT INTO playlist_song (song_ismn, playlist_id) VALUES (%s, %s);"
             )
