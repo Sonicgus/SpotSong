@@ -7,13 +7,13 @@
 	},
 	"item": [
 		{
-			"name": "Add User",
+			"name": "User Registration",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"username\": \"fffffffdfsasff\",\r\n    \"email\": \"email\",\r\n    \"password\": \"password\",\r\n    \"address\": \"dsfadsf\",\r\n    \"contact\": \"dsfadsf\",\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE2ODY5MjgzNzMuNzUyNTAzfQ.a2u_2_qEIEUSiJOckZg8-BzwufDDbl7vAT_-JrTHI5M\",\r\n    \"artistic_name\": \"sdfff\",\r\n    \"label_id\": 1\r\n}",
+					"raw": "{\r\n    \"username\": \"gustavo\",\r\n    \"email\": \"gustavo@uc.pt\",\r\n    \"password\": \"1234\",\r\n    \"address\": \"rua 26 de abril\",\r\n    \"contact\": \"+351 919 123 469\",\r\n    \"name\": \"Gustavo Lima\",\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE2ODY5NDA1MzcuODUwNzUxfQ.B3e0FWjYDXuOOqwZ_IXwxGqPD8ftDXLI-fDsfKy00xs\",\r\n    \"artistic_name\": \"MC Gustavo\",\r\n    \"label_id\": 1\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -42,7 +42,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"username\": \"artista\",\r\n    \"password\": \"artista\"\r\n}",
+					"raw": "{\r\n    \"username\": \"nuno\",\r\n    \"password\": \"1234\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -71,7 +71,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE2ODY5MzAwMTIuMjU0OH0.o7rGG6Tw2FGf-zPT2z9ofmS1jksNtvUhrK1gqPJwsFc\",\r\n    \"song_name\": \"song_name\",\r\n    \"duration\": \"2023-06-11 10:30:00\",\r\n    \"genre\": \"genre\",\r\n    \"release_date\": \"2023-06-11 10:30:00\",\r\n    \"publisher_id\": 1,\r\n    \"other_artists\": [\r\n        3\r\n    ]\r\n}",
+					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo3LCJleHAiOjE2ODY5NDA1NzkuMTY2MDEzfQ.BGbdg_qOj9mJXr-_sw8mreUZzKmo-Bg3gjranBtqGwA\",\r\n    \"song_name\": \"Décima Sinfonia\",\r\n    \"duration\": \"04:30\",\r\n    \"genre\": \"funk\",\r\n    \"release_date\": \"2023-06-11 10:30:00\",\r\n    \"publisher_id\": 1,\r\n    \"other_artists\": [\r\n        3\r\n    ]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -100,7 +100,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE2ODY5MzAzNjUuMDI5NDg1fQ.VLJ8X9xwwkj4_Ec0qTMNptuQRn4qTZdfvAkocy7c4t8\",\r\n    \"release_date\": \"2023-06-11 10:30:00\",\r\n    \"publisher_id\": 1,\r\n    \"album_name\": \"123\",\r\n    \"songs\": [\r\n        1,3,4,5,6,\r\n        {\r\n            \"song_name\": \"song_name\",\r\n            \"duration\": \"2023-06-11 10:30:00\",\r\n            \"genre\": \"genre\",\r\n            \"release_date\": \"2023-06-11 10:30:00\",\r\n            \"publisher_id\": 1,\r\n            \"other_artists\": [\r\n                3\r\n            ]\r\n        }\r\n    ]\r\n}",
+					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo3LCJleHAiOjE2ODY5NDA4OTIuNDQ0NjcxfQ.7avhDZ8BcwZQ6uRm90vC2wzG6cg9QXWT81qbZ2yZkRA\",\r\n    \"release_date\": \"2023-06-11 10:30:00\",\r\n    \"publisher_id\": 1,\r\n    \"album_name\": \"Oceano 404\",\r\n    \"songs\": [\r\n        2,\r\n        {\r\n            \"song_name\": \"Guitarra azul\",\r\n            \"duration\": \"2023-06-11 10:30:00\",\r\n            \"genre\": \"classica\",\r\n            \"release_date\": \"2023-06-11 10:30:00\",\r\n            \"publisher_id\": 1,\r\n            \"other_artists\": [\r\n                3\r\n            ]\r\n        }\r\n    ]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -124,11 +124,23 @@
 		},
 		{
 			"name": "Search Song",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
 			"request": {
 				"method": "GET",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE2ODY5NDA5NjUuMTIwODQ0fQ.SFsnPMIAIxiQYndqqKuFEinTfVc3lyAu-wds32NIC1M\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": "http://localhost:8080/dbproj/song/style",
+					"raw": "http://localhost:8080/dbproj/song/a",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -137,68 +149,7 @@
 					"path": [
 						"dbproj",
 						"song",
-						"style"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Add a Comment",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY5MjcwNTUuMjk4ODMxfQ.DzKQbBDXwPlVYs5Ror0qQp0KrOZL_Pd4O-bEe2Y1AQc\",\r\n    \"comment\": \"Estou a comentar uma música\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/dbproj/comments/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"dbproj",
-						"comments",
-						"1"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Add Comment a Comment",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY5MjcyODcuNTg5OTA2fQ.tOcEg4wMffsOuS7oQ7DCHBlGdI1SriMA7XfjKugLrF4\",\r\n    \"comment\": \"Estou a comentar um comentário\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/dbproj/comments/1/5",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"dbproj",
-						"comments",
-						"1",
-						"5"
+						"a"
 					]
 				}
 			},
@@ -206,11 +157,23 @@
 		},
 		{
 			"name": "Detail Artist",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
 			"request": {
 				"method": "GET",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE2ODY5NDMyNDguMjAyOTQ1fQ.uUozkfpqAzZwa86V-OvopSPD5mX15cTH0PGLxq_iDQo\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": "http://localhost:8080/dbproj/artist_info/2",
+					"raw": "http://localhost:8080/dbproj/artist_info/7",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -219,65 +182,7 @@
 					"path": [
 						"dbproj",
 						"artist_info",
-						"2"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Add Playlist",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY5MjA4NTUuMTIxNDY3fQ.j5McN7pTJ4oFKzE_n2vRIGnNFtQPqmSfxde06Q3t8VY\",\r\n    \"playlist_name\": \"minhas favoritas\",\r\n    \"visibility\": \"public\",\r\n    \"songs\": [1,2,3,4,5,6,7,8,9]\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/dbproj/playlist",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"dbproj",
-						"playlist"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Generate Cards",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE2ODY2MDA4MDcuNTgwMTU2fQ.Is3Je9hY-hUx2DyUoiow8nEf41mo3gEBSpde8T1Gxek\",\r\n    \"number_cards\":\"10\",\r\n    \"card_price\":50\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/dbproj/card",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"dbproj",
-						"card"
+						"7"
 					]
 				}
 			},
@@ -290,7 +195,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY4NjUzNTQuNDA2Njg5fQ.KkchqnozfpwaTr54yXHY0WlHAFR2cvWB13SEVlOnV70\",\r\n    \"period\": \"month\",\r\n    \"cards\": [\r\n        \"FNAF8CM46QATB04U\",\r\n        \"N6G5F3TS0BO59IKW\"\r\n    ]\r\n}",
+					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE2ODY5NDIxNDguODU2MDA2fQ.9FzTnp5JcSS-CP1WwhrDrM_rprYEkffOMgNt99e7vVk\",\r\n    \"period\": \"month\",\r\n    \"cards\": [\r\n        \"UGLFZ0568EB60W44\",\r\n        \"1KUHKC6CA6GTE0ZX\"\r\n    ]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -313,13 +218,13 @@
 			"response": []
 		},
 		{
-			"name": "Play Song",
+			"name": "Create Playlist",
 			"request": {
-				"method": "PUT",
+				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY5MjA5ODguMzk1ODkzfQ.A9A5EzDHpv-L0jbdTqQ7N0E0ippAKyyjulUngUUBTA8\"\r\n}",
+					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE2ODY5NDE1MzcuNTE1OTk5fQ.NXEwcDHzNgXo5sPaCDSTvyaQhaxcPQaxxxF51r-ZFAs\",\r\n    \"playlist_name\": \"minhas Favoritas\",\r\n    \"visibility\": \"public\",\r\n    \"songs\": [1,2,3]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -327,7 +232,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/dbproj/16",
+					"raw": "http://localhost:8080/dbproj/playlist",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -335,7 +240,126 @@
 					"port": "8080",
 					"path": [
 						"dbproj",
-						"16"
+						"playlist"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Play Song",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE2ODY5NDIzMDkuNjQ3OTE1fQ.fHJe7FrHQQwXuV6jdX9jA_kOkFfe_XDTleO5WsvTe6U\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/dbproj/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"dbproj",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Generate Cards",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE2ODY5NDE1NzYuNTY4MTkyfQ.5QubMoRZleD1ThH62311ssybi47fJ1Ef2Z23vUsgXHI\",\r\n    \"number_cards\":\"10\",\r\n    \"card_price\":50\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/dbproj/card",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"dbproj",
+						"card"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add a Comment",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE2ODY5NDA5NjUuMTIwODQ0fQ.SFsnPMIAIxiQYndqqKuFEinTfVc3lyAu-wds32NIC1M\",\r\n    \"comment\": \"Estou a comentar uma música\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/dbproj/comments/2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"dbproj",
+						"comments",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Comment a Comment",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE2ODY5NDA5NjUuMTIwODQ0fQ.SFsnPMIAIxiQYndqqKuFEinTfVc3lyAu-wds32NIC1M\",\r\n    \"comment\": \"Estou a comentar um comentário\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/dbproj/comments/2/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"dbproj",
+						"comments",
+						"2",
+						"1"
 					]
 				}
 			},
@@ -351,7 +375,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY5MzMxMjcuODk2NzR9.zCgOfdWmMMGtKeROitPXwoDy3NhAVgbt2o9ldYDWG3w\"\r\n}",
+					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo1LCJleHAiOjE2ODY5NDI5MzYuMjU1OTY3fQ.QTznB7mjPO1XoIZz8F-yOk3Mrgv7FjoqDO-SZMARHbc\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
