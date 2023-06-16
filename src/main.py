@@ -724,16 +724,71 @@ def search_song(keyword):
 #
 @app.route("/dbproj/artist_info/<artist_id>", methods=["GET"])
 def detail_artist(artist_id):
+    payload = flask.request.get_json()
     logger.info("GET /dbproj/song/{artist_id}")
 
     logger.debug("GET /dbproj/song/{artist_id}")
+
+    if "token" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token value not in payload",
+        }
+        return flask.jsonify(response)
+    
+    try:
+        # o id está guardado no credentials
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token invalido. tente autenticar novamente",
+        }
+        return flask.jsonify(response)
+
+    # verificar se user_id está em credentials
+    if "user_id" not in credentials:
+        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        return flask.jsonify(response)
 
     conn = db_connection()
     cur = conn.cursor()
 
     # parameterized queries, good for security and performance
-    statement = "SELECT artist.artistic_name, song.ismn, album.id FROM artist JOIN artist_song ON artist_song.artist_person_users_id = artist.person_users_id JOIN song ON song.ismn = artist_song.song_ismn JOIN song_album ON song_album.song_ismn = song.ismn JOIN album ON album.id = song_album.album_id WHERE artist.person_users_id = %s;"
-    values = (artist_id,)
+    statement = '''
+    SELECT
+    artist.artistic_name,
+    song.ismn,
+    song_album.album_id,
+    NULL AS playlist_id
+    FROM
+    artist
+    JOIN song ON artist.person_users_id = song.artist_person_users_id
+    LEFT JOIN song_album ON song.ismn = song_album.song_ismn
+    WHERE
+    artist.person_users_id = %s
+
+    UNION
+
+    SELECT
+    artist.artistic_name,
+    song.ismn,
+    NULL AS album_id,
+    playlist_song.playlist_id
+    FROM
+    artist
+    JOIN song ON artist.person_users_id = song.artist_person_users_id
+    LEFT JOIN playlist_song ON song.ismn = playlist_song.song_ismn
+    LEFT JOIN playlist ON playlist_song.playlist_id = playlist.id
+    WHERE
+    artist.person_users_id = %s
+    AND (
+        (playlist.is_private IS NULL OR playlist.is_private = true) AND playlist.consumer_person_users_id = %s
+        OR playlist.is_private = false
+    );
+    '''
+    values = (artist_id,artist_id,credentials["user_id"])
 
     try:
         cur.execute(statement, values)
@@ -751,24 +806,17 @@ def detail_artist(artist_id):
         artistic_name = all[0][0]
         songs = []
         albuns = []
+        playlist = []
 
-        for element in all:
-            song_id = element[1]
-            album_id = element[2]
+        for linha in all:
+            if linha[1] not in songs and linha[1] is not None:
+                songs.append(linha[1])
+            if linha[2] not in albuns and linha[2] is not None:
+                albuns.append(linha[2])
+            if linha[3] not in playlist and linha[3] is not None:
+                playlist.append(linha[3])
 
-            if song_id not in songs:
-                songs.append(song_id)
-
-            if album_id not in albuns:
-                albuns.append(album_id)
-
-                results = []
-
-        results.append({"name": artistic_name})
-
-        results.append({"songs": songs})
-
-        results.append({"albuns": albuns})
+        results={"name": artistic_name,"songs": songs, "albuns": albuns, "playlists":playlist}
 
         response = {"status": StatusCodes["success"], "results": results}
 
