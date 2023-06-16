@@ -682,7 +682,8 @@ def search_song(keyword):
         for element in all:
             song_id = element[0]
             if song_id in dicisongs:
-                dicisongs[song_id]["artists"].append(element[2])
+                if element[2] not in dicisongs[song_id]["artists"]:
+                    dicisongs[song_id]["artists"].append(element[2])
             else:
                 dicisongs[song_id] = {"song_title": element[1], "artists": [element[2]]}
 
