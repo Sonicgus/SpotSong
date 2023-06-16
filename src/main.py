@@ -367,20 +367,52 @@ def add_song():
     conn = db_connection()
     cur = conn.cursor()
 
-    # parameterized queries, good for security and performance
-    statement = "INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn;"
-    values = (
-        payload["song_name"],
-        payload["release_date"],
-        payload["duration"],
-        payload["genre"],
-        credentials["user_id"],
-        payload["publisher_id"],
-    )
+    
 
     try:
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
+
+        # parameterized queries, good for security and performance
+        statement = "SELECT person_users_id FROM artist WHERE person_users_id = %s"
+        values = (
+            credentials["user_id"],
+        )
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+        if indb is None:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "token invalido.",
+            }
+            return flask.jsonify(response)
+        
+        statement = "SELECT id FROM label WHERE id = %s"
+        values = (
+            payload["publisher_id"],
+        )
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+        if indb is None:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "publisher_id invalido.",
+            }
+            return flask.jsonify(response)
+
+
+
+        statement = "INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn;"
+        values = (
+            payload["song_name"],
+            payload["release_date"],
+            payload["duration"],
+            payload["genre"],
+            credentials["user_id"],
+            payload["publisher_id"],
+        )
 
         cur.execute(statement, values)
 
@@ -676,8 +708,23 @@ def add_album():
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
 
+        # parameterized queries, good for security and performance
+        statement = "SELECT person_users_id FROM artist WHERE person_users_id = %s"
+        values = (
+            credentials["user_id"],
+        )
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+        if indb is None:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "token invalido.",
+            }
+            return flask.jsonify(response)
+
         for song in payload["songs"]:
-            if "song_id" in song:
+            if song is not dict:
                 #  validate if the artist is associated with the selected existing songs
                 statement = "SELECT artist_person_users_id FROM artist_song WHERE song_ismn = %s AND artist_person_users_id = %s"
                 values = (
@@ -709,8 +756,8 @@ def add_album():
 
         for song in payload["songs"]:
             song_id = 0
-            if "song_id" in song:
-                song_id = song["song_id"]
+            if song is not dict:
+                song_id = song
 
             else:
                 statement = "INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn;"
@@ -820,13 +867,26 @@ def add_comment(song_ismn):
     conn = db_connection()
     cur = conn.cursor()
 
-    # parameterized queries, good for security and performance
-    statement = "INSERT INTO comment (text, song_ismn, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
-    values = (payload["comment"], song_ismn, credentials["user_id"])
-
+    
     try:
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
+
+        statement = "SELECT person_users_id FROM consumer WHERE person_users_id = %s"
+        values = (credentials["user_id"],)
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+
+        print(indb)
+
+        if indb is None:
+            response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+            return flask.jsonify(response)
+
+        # parameterized queries, good for security and performance
+        statement = "INSERT INTO comment (text, song_ismn, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
+        values = (payload["comment"], song_ismn, credentials["user_id"])
 
         cur.execute(statement, values)
 
@@ -853,6 +913,112 @@ def add_comment(song_ismn):
 
     return flask.jsonify(response)
 
+
+#
+# POST
+#
+# Add a new comment for a comment parent in a JSON payload
+#
+# To use it, you need to use postman or curl:
+#
+# curl -X POST http://localhost:8080/dbproj/comments/{song_ismn} -H 'Content-Type: application/json' -d '{"comment": "comment_details", "consumer_person_users_id": 1}'
+#
+@app.route("/dbproj/comments/<song_ismn>/<parent_comment_id>", methods=["POST"])
+def add_comment_comment(song_ismn,parent_comment_id):
+    logger.info(f"POST /dbproj/comments/{song_ismn}/{parent_comment_id}")
+    payload = flask.request.get_json()
+
+    logger.debug(f"POST /dbproj/comments/{song_ismn}/{parent_comment_id} - payload: {payload}")
+
+    # validate every argument
+    if "comment" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "comment value not in payload",
+        }
+        return flask.jsonify(response)
+
+    if "token" not in payload:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token value not in payload",
+        }
+        return flask.jsonify(response)
+
+    try:
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token invalido. tente autenticar novamente",
+        }
+        return flask.jsonify(response)
+
+    if "user_id" not in credentials:
+        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+        return flask.jsonify(response)
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    
+    try:
+        # begin the transaction
+        cur.execute("BEGIN TRANSACTION;")
+
+        statement = "SELECT person_users_id FROM consumer WHERE person_users_id = %s"
+        values = (credentials["user_id"],)
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+
+        print(indb)
+
+        if indb is None:
+            response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
+            return flask.jsonify(response)
+        
+        statement = "SELECT id FROM comment WHERE id = %s"
+        values = (parent_comment_id,)
+
+        cur.execute(statement, values)
+        indb2 = cur.fetchone()
+
+        print(indb2)
+
+        if indb2 is None:
+            response = {"status": StatusCodes["api_error"], "results": "Invalid comment parent"}
+            return flask.jsonify(response)
+
+        # parameterized queries, good for security and performance
+        statement = "INSERT INTO comment (text, song_ismn, consumer_person_users_id,comment_id) VALUES (%s, %s, %s,%s) RETURNING id;"
+        values = (payload["comment"], song_ismn, credentials["user_id"],parent_comment_id)
+
+        cur.execute(statement, values)
+
+        comment_id = cur.fetchone()[0]
+
+        # commit the transaction
+        cur.execute("COMMIT;")
+
+        response = {
+            "status": StatusCodes["success"],
+            "results": f"Inserted comment {comment_id}",
+        }
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f"POST /dbproj/comments/{song_ismn}/{parent_comment_id} - error: {error}")
+        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+
+        # an error occurred, rollback
+        cur.execute("ROLLBACK;")
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
 
 #
 # POST
