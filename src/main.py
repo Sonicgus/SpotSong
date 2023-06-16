@@ -736,7 +736,7 @@ def detail_artist(artist_id):
             "results": "token value not in payload",
         }
         return flask.jsonify(response)
-    
+
     try:
         # o id está guardado no credentials
         credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
@@ -757,7 +757,7 @@ def detail_artist(artist_id):
     cur = conn.cursor()
 
     # parameterized queries, good for security and performance
-    statement = '''
+    statement = """
     SELECT
     artist.artistic_name,
     song.ismn,
@@ -788,8 +788,8 @@ def detail_artist(artist_id):
         (playlist.is_private IS NULL OR playlist.is_private = true) AND playlist.consumer_person_users_id = %s
         OR playlist.is_private = false
     );
-    '''
-    values = (artist_id,artist_id,credentials["user_id"])
+    """
+    values = (artist_id, artist_id, credentials["user_id"])
 
     try:
         cur.execute(statement, values)
@@ -817,7 +817,12 @@ def detail_artist(artist_id):
             if linha[3] not in playlist and linha[3] is not None:
                 playlist.append(linha[3])
 
-        results={"name": artistic_name,"songs": songs, "albuns": albuns, "playlists":playlist}
+        results = {
+            "name": artistic_name,
+            "songs": songs,
+            "albuns": albuns,
+            "playlists": playlist,
+        }
 
         response = {"status": StatusCodes["success"], "results": results}
 
