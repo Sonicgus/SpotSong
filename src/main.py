@@ -124,7 +124,7 @@ def add_user():
         if res is not None:
             response = {
                 "status": StatusCodes["api_error"],
-                "results": "username invalido",
+                "results": "Usuario com esse username já existe. Escolha outro",
             }
             cur.execute("ROLLBACK;")
             return flask.jsonify(response)
@@ -174,7 +174,7 @@ def add_user():
             if res is None:
                 response = {
                     "status": StatusCodes["api_error"],
-                    "results": "voce nao tem permissoes para isso",
+                    "results": "token invalido",
                 }
                 cur.execute("ROLLBACK;")
                 return flask.jsonify(response)
@@ -189,7 +189,7 @@ def add_user():
             if res is not None:
                 response = {
                     "status": StatusCodes["api_error"],
-                    "results": "artistic_name invalido",
+                    "results": "Usuario com esse nome artistico já existe. Escolha outro",
                 }
                 cur.execute("ROLLBACK;")
                 return flask.jsonify(response)
