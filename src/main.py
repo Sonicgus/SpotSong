@@ -103,48 +103,93 @@ def add_user():
     logger.debug(f"POST /dbproj/user - payload: {payload}")
 
     # validate every argument:
-    if "username" not in payload:
+    required_fields = ["username", "email", "password", "address", "contact"]
+    missing_fields = [field for field in required_fields if field not in payload]
+    if missing_fields:
         response = {
             "status": StatusCodes["api_error"],
-            "results": "username value not in payload",
+            "results": f"{', '.join(missing_fields)} value(s) not in payload",
         }
         return flask.jsonify(response)
-
-    if "email" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "email value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "password" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "password value not in payload",
-        }
-        return flask.jsonify(response)
-
-    hashed_password = bcrypt.hashpw(
-        payload["password"].encode("utf-8"), bcrypt.gensalt()
-    ).decode("utf-8")
-
-    # parameterized queries, good for security and performance
-    statement = "INSERT INTO users (username, email, password) VALUES (%s, %s, %s) RETURNING id;"
-    values = (
-        payload["username"],
-        payload["email"],
-        hashed_password,
-    )
 
     conn = db_connection()
     cur = conn.cursor()
+
+    hashed_password = bcrypt.hashpw(payload["password"].encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
     try:
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
 
+        statement = "SELECT id FROM users WHERE username = %s"
+        values = (payload["username"],)
+
+        cur.execute(statement, values)
+        res = cur.fetchone()
+
+        if res is not None:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "username invalido"
+            }
+            return flask.jsonify(response)
+
+        statement = "INSERT INTO users (username, email, password) VALUES (%s, %s, %s) RETURNING id;"
+        values = (payload["username"], payload["email"], hashed_password)
+
         cur.execute(statement, values)
         user_id = cur.fetchone()[0]
+
+        statement = "INSERT INTO person (address, contact, users_id) VALUES (%s, %s, %s);"
+        values = (payload["address"], payload["contact"], user_id)
+
+        cur.execute(statement, values)
+
+        
+        if "artistic_name" in payload or "label_id" in payload:
+            required_fields.extend(["token", "label_id", "artistic_name"])
+            missing_fields = [field for field in required_fields if field not in payload]
+            if missing_fields:
+                response = {
+                    "status": StatusCodes["api_error"],
+                    "results": f"{', '.join(missing_fields)} value(s) not in payload",
+                }
+                return flask.jsonify(response)
+
+            try:
+                # o id está guardado no credentials
+                credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+
+            except jwt.exceptions.ExpiredSignatureError:
+                response = {
+                    "status": StatusCodes["api_error"],
+                    "results": "token invalido. tente autenticar novamente",
+                }
+                return flask.jsonify(response)
+
+            
+            statement = "SELECT users_id FROM administrator WHERE users_id = %s"
+            values = (credentials["user_id"],)
+
+            cur.execute(statement, values)
+            adm_id = cur.fetchone()[0]
+            if adm_id is None:
+                response = {
+                    "status": StatusCodes["api_error"],
+                    "results": "token invalido. tente autenticar novamente",
+                }
+                return flask.jsonify(response)
+            
+            statement = "INSERT INTO artist (artistic_name, administrator_users_id,label_id,person_users_id) VALUES (%s,%s,%s,%s)"
+            values = (payload["artistic_name"],adm_id,payload["label_id"],user_id,)
+            
+            
+        else:
+            statement = "INSERT INTO consumer (person_users_id) VALUES (%s)"
+            values = (user_id,)
+
+
+        cur.execute(statement, values)
 
         # commit the transaction
         cur.execute("COMMIT;")
@@ -165,6 +210,8 @@ def add_user():
             conn.close()
 
     return flask.jsonify(response)
+
+
 
 
 #
