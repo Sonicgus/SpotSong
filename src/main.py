@@ -107,12 +107,14 @@ def add_user():
     for field in required_fields:
         if field not in payload:
             response = {
-            "status": StatusCodes["api_error"],
-            "results": f'{field} not in payload',
+                "status": StatusCodes["api_error"],
+                "results": f"{field} not in payload",
             }
             return flask.jsonify(response)
-      
-    hashed_password = bcrypt.hashpw(payload["password"].encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+    hashed_password = bcrypt.hashpw(
+        payload["password"].encode("utf-8"), bcrypt.gensalt()
+    ).decode("utf-8")
 
     conn = db_connection()
     cur = conn.cursor()
@@ -130,7 +132,7 @@ def add_user():
         if res is not None:
             response = {
                 "status": StatusCodes["api_error"],
-                "results": "username invalido"
+                "results": "username invalido",
             }
             cur.execute("ROLLBACK;")
             return flask.jsonify(response)
@@ -141,26 +143,29 @@ def add_user():
         cur.execute(statement, values)
         user_id = cur.fetchone()[0]
 
-        statement = "INSERT INTO person (address, contact, users_id) VALUES (%s, %s, %s);"
+        statement = (
+            "INSERT INTO person (address, contact, users_id) VALUES (%s, %s, %s);"
+        )
         values = (payload["address"], payload["contact"], user_id)
 
         cur.execute(statement, values)
 
-        
         if "artistic_name" in payload or "label_id" in payload:
             required_fields = ["token", "label_id", "artistic_name"]
             for field in required_fields:
                 if field not in payload:
                     response = {
-                    "status": StatusCodes["api_error"],
-                    "results": f'{field} not in payload',
+                        "status": StatusCodes["api_error"],
+                        "results": f"{field} not in payload",
                     }
-                    cur.execute("ROLLBACK;")    
+                    cur.execute("ROLLBACK;")
                     return flask.jsonify(response)
-            
+
             try:
                 # o id está guardado no credentials
-                credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+                credentials = jwt.decode(
+                    payload["token"], secret_key, algorithms="HS256"
+                )
 
             except jwt.exceptions.ExpiredSignatureError:
                 response = {
@@ -170,7 +175,6 @@ def add_user():
                 cur.execute("ROLLBACK;")
                 return flask.jsonify(response)
 
-            
             statement = "SELECT users_id FROM administrator WHERE users_id = %s"
             values = (credentials["user_id"],)
 
@@ -199,15 +203,21 @@ def add_user():
                 }
                 cur.execute("ROLLBACK;")
                 return flask.jsonify(response)
-            
+
             statement = "INSERT INTO artist (artistic_name, administrator_users_id,label_id,person_users_id) VALUES (%s,%s,%s,%s)"
-            values = (payload["artistic_name"],adm_id,payload["label_id"],user_id,)
-            
-            
+            values = (
+                payload["artistic_name"],
+                adm_id,
+                payload["label_id"],
+                user_id,
+            )
+
         else:
             statement = "INSERT INTO consumer (person_users_id) VALUES (%s)"
             values = (user_id,)
-
+            cur.execute(statement, values)
+            statement = "INSERT INTO playlist (name,consumer_person_users_id) VALUES (%s,%s)"
+            values = ('TOP 10',user_id,)
 
         cur.execute(statement, values)
 
@@ -230,8 +240,6 @@ def add_user():
             conn.close()
 
     return flask.jsonify(response)
-
-
 
 
 #
@@ -258,11 +266,11 @@ def authenticate_user():
     for field in required_fields:
         if field not in payload:
             response = {
-            "status": StatusCodes["api_error"],
-            "results": f'{field} not in payload',
+                "status": StatusCodes["api_error"],
+                "results": f"{field} not in payload",
             }
             return flask.jsonify(response)
-    
+
     conn = db_connection()
     cur = conn.cursor()
 
@@ -276,11 +284,10 @@ def authenticate_user():
 
         if row is None:
             response = {
-            "status": StatusCodes["api_error"],
-            "results": 'username incorreto',
+                "status": StatusCodes["api_error"],
+                "results": "username incorreto",
             }
             return flask.jsonify(response)
-
 
         if bcrypt.checkpw(payload["password"].encode("utf-8"), row[1].encode("utf-8")):
             response = {
@@ -389,17 +396,13 @@ def add_song():
     conn = db_connection()
     cur = conn.cursor()
 
-    
-
     try:
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
 
         # parameterized queries, good for security and performance
         statement = "SELECT person_users_id FROM artist WHERE person_users_id = %s"
-        values = (
-            credentials["user_id"],
-        )
+        values = (credentials["user_id"],)
 
         cur.execute(statement, values)
         indb = cur.fetchone()
@@ -409,11 +412,9 @@ def add_song():
                 "results": "token invalido.",
             }
             return flask.jsonify(response)
-        
+
         statement = "SELECT id FROM label WHERE id = %s"
-        values = (
-            payload["publisher_id"],
-        )
+        values = (payload["publisher_id"],)
 
         cur.execute(statement, values)
         indb = cur.fetchone()
@@ -423,8 +424,6 @@ def add_song():
                 "results": "publisher_id invalido.",
             }
             return flask.jsonify(response)
-
-
 
         statement = "INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn;"
         values = (
@@ -732,9 +731,7 @@ def add_album():
 
         # parameterized queries, good for security and performance
         statement = "SELECT person_users_id FROM artist WHERE person_users_id = %s"
-        values = (
-            credentials["user_id"],
-        )
+        values = (credentials["user_id"],)
 
         cur.execute(statement, values)
         indb = cur.fetchone()
@@ -889,7 +886,6 @@ def add_comment(song_ismn):
     conn = db_connection()
     cur = conn.cursor()
 
-    
     try:
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
@@ -946,11 +942,13 @@ def add_comment(song_ismn):
 # curl -X POST http://localhost:8080/dbproj/comments/{song_ismn} -H 'Content-Type: application/json' -d '{"comment": "comment_details", "consumer_person_users_id": 1}'
 #
 @app.route("/dbproj/comments/<song_ismn>/<parent_comment_id>", methods=["POST"])
-def add_comment_comment(song_ismn,parent_comment_id):
+def add_comment_comment(song_ismn, parent_comment_id):
     logger.info(f"POST /dbproj/comments/{song_ismn}/{parent_comment_id}")
     payload = flask.request.get_json()
 
-    logger.debug(f"POST /dbproj/comments/{song_ismn}/{parent_comment_id} - payload: {payload}")
+    logger.debug(
+        f"POST /dbproj/comments/{song_ismn}/{parent_comment_id} - payload: {payload}"
+    )
 
     # validate every argument
     if "comment" not in payload:
@@ -984,7 +982,6 @@ def add_comment_comment(song_ismn,parent_comment_id):
     conn = db_connection()
     cur = conn.cursor()
 
-    
     try:
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
@@ -1000,7 +997,7 @@ def add_comment_comment(song_ismn,parent_comment_id):
         if indb is None:
             response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
             return flask.jsonify(response)
-        
+
         statement = "SELECT id FROM comment WHERE id = %s"
         values = (parent_comment_id,)
 
@@ -1010,12 +1007,20 @@ def add_comment_comment(song_ismn,parent_comment_id):
         print(indb2)
 
         if indb2 is None:
-            response = {"status": StatusCodes["api_error"], "results": "Invalid comment parent"}
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "Invalid comment parent",
+            }
             return flask.jsonify(response)
 
         # parameterized queries, good for security and performance
         statement = "INSERT INTO comment (text, song_ismn, consumer_person_users_id,comment_id) VALUES (%s, %s, %s,%s) RETURNING id;"
-        values = (payload["comment"], song_ismn, credentials["user_id"],parent_comment_id)
+        values = (
+            payload["comment"],
+            song_ismn,
+            credentials["user_id"],
+            parent_comment_id,
+        )
 
         cur.execute(statement, values)
 
@@ -1030,7 +1035,9 @@ def add_comment_comment(song_ismn,parent_comment_id):
         }
 
     except (Exception, psycopg.DatabaseError) as error:
-        logger.error(f"POST /dbproj/comments/{song_ismn}/{parent_comment_id} - error: {error}")
+        logger.error(
+            f"POST /dbproj/comments/{song_ismn}/{parent_comment_id} - error: {error}"
+        )
         response = {"status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
@@ -1041,6 +1048,7 @@ def add_comment_comment(song_ismn,parent_comment_id):
             conn.close()
 
     return flask.jsonify(response)
+
 
 #
 # POST
@@ -1117,8 +1125,6 @@ def add_playlist():
     conn = db_connection()
     cur = conn.cursor()
 
-    
-
     try:
         # begin the transaction
         cur.execute("BEGIN TRANSACTION;")
@@ -1134,8 +1140,6 @@ def add_playlist():
         if indb is None:
             response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
             return flask.jsonify(response)
-
-
 
         # parameterized queries, good for security and performance
         statement = "INSERT INTO playlist (name, is_private, consumer_person_users_id) VALUES (%s, %s, %s) RETURNING id;"
