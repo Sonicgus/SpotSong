@@ -795,26 +795,14 @@ def subscribe_premium():
     logger.debug(f"POST /dbproj/subcription - payload: {payload}")
 
     # validate every argument:
-    if "period" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "period value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "cards" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "cards not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "token" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token value not in payload",
-        }
-        return flask.jsonify(response)
+    required_fields = ["period", "cards", "token"]
+    for field in required_fields:
+        if field not in payload:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": f"{field} not in payload",
+            }
+            return flask.jsonify(response)
 
     try:
         credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
@@ -967,34 +955,15 @@ def add_playlist():
 
     logger.debug(f"POST /dbproj/playlist - payload: {payload}")
 
-    # validate every argument
-    if "playlist_name" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "playlist_name value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "visibility" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "visibility value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "songs" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "songs value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "token" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token value not in payload",
-        }
-        return flask.jsonify(response)
+    # validate every argument:
+    required_fields = ["playlist_name", "visibility", "songs", "token"]
+    for field in required_fields:
+        if field not in payload:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": f"{field} not in payload",
+            }
+            return flask.jsonify(response)
 
     try:
         credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
@@ -1167,26 +1136,14 @@ def generate_cards():
     logger.debug(f"POST /dbproj/card - payload: {payload}")
 
     # validate every argument:
-    if "number_cards" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "number_cards value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "card_price" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "card_price value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "token" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token value not in payload",
-        }
-        return flask.jsonify(response)
+    required_fields = ["number_cards", "card_price", "token"]
+    for field in required_fields:
+        if field not in payload:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": f"{field} not in payload",
+            }
+            return flask.jsonify(response)
 
     try:
         credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
@@ -1273,21 +1230,15 @@ def add_comment(song_ismn):
 
     logger.debug(f"POST /dbproj/comments/{song_ismn} - payload: {payload}")
 
-    # validate every argument
-    if "comment" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "comment value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "token" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token value not in payload",
-        }
-        return flask.jsonify(response)
-
+    # validate every argument:
+    required_fields = ["comment", "token"]
+    for field in required_fields:
+        if field not in payload:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": f"{field} not in payload",
+            }
+            return flask.jsonify(response)
     try:
         credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
 
@@ -1369,21 +1320,15 @@ def add_comment_comment(song_ismn, parent_comment_id):
         f"POST /dbproj/comments/{song_ismn}/{parent_comment_id} - payload: {payload}"
     )
 
-    # validate every argument
-    if "comment" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "comment value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "token" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token value not in payload",
-        }
-        return flask.jsonify(response)
-
+    # validate every argument:
+    required_fields = ["comment", "token"]
+    for field in required_fields:
+        if field not in payload:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": f"{field} not in payload",
+            }
+            return flask.jsonify(response)
     try:
         credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
 
