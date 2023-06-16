@@ -7,13 +7,42 @@
 	},
 	"item": [
 		{
+			"name": "Add User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"fffffffdfsasff\",\r\n    \"email\": \"email\",\r\n    \"password\": \"password\",\r\n    \"address\": \"dsfadsf\",\r\n    \"contact\": \"dsfadsf\",\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJleHAiOjE2ODY5MjgzNzMuNzUyNTAzfQ.a2u_2_qEIEUSiJOckZg8-BzwufDDbl7vAT_-JrTHI5M\",\r\n    \"artistic_name\": \"sdfff\",\r\n    \"label_id\": 1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/dbproj/user",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"dbproj",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "User Authentication",
 			"request": {
 				"method": "PUT",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"username\": \"quim\",\r\n    \"password\": \"quim\"\r\n}",
+					"raw": "{\r\n    \"username\": \"artista\",\r\n    \"password\": \"artista\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -42,7 +71,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE2ODY2NjcyNDUuMzQwMjM4fQ.qClpcCyssdZ0LN95_A20fYpnhthIIuGy3kTmlys0NaA\",\r\n    \"song_name\": \"song_name\",\r\n    \"duration\": \"2023-06-11 10:30:00\",\r\n    \"genre\": \"genre\",\r\n    \"release_date\": \"2023-06-11 10:30:00\",\r\n    \"publisher_id\": 1,\r\n    \"other_artists\": [\r\n        3\r\n    ]\r\n}",
+					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE2ODY5MzAwMTIuMjU0OH0.o7rGG6Tw2FGf-zPT2z9ofmS1jksNtvUhrK1gqPJwsFc\",\r\n    \"song_name\": \"song_name\",\r\n    \"duration\": \"2023-06-11 10:30:00\",\r\n    \"genre\": \"genre\",\r\n    \"release_date\": \"2023-06-11 10:30:00\",\r\n    \"publisher_id\": 1,\r\n    \"other_artists\": [\r\n        3\r\n    ]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -65,34 +94,13 @@
 			"response": []
 		},
 		{
-			"name": "Search Song",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8080/dbproj/song/song",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"dbproj",
-						"song",
-						"song"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Add Album",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE2ODY1OTI3ODkuNjM3NzA2fQ.m9zJTjekwvA3jsCvWPDQzMXRbaDZc7B8GGzvaLVfLB4\",\r\n    \"release_date\": \"2023-06-11 10:30:00\",\r\n    \"publisher_id\": 1,\r\n    \"album_name\": \"123\",\r\n    \"songs\": [\r\n        {\r\n            \"song_id\": 1\r\n        },\r\n        {\r\n            \"song_name\": \"song_name\",\r\n            \"duration\": \"2023-06-11 10:30:00\",\r\n            \"genre\": \"genre\",\r\n            \"release_date\": \"2023-06-11 10:30:00\",\r\n            \"publisher_id\": 1,\r\n            \"other_artists\": [\r\n                3\r\n            ]\r\n        }\r\n    ]\r\n}",
+					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJleHAiOjE2ODY5MzAzNjUuMDI5NDg1fQ.VLJ8X9xwwkj4_Ec0qTMNptuQRn4qTZdfvAkocy7c4t8\",\r\n    \"release_date\": \"2023-06-11 10:30:00\",\r\n    \"publisher_id\": 1,\r\n    \"album_name\": \"123\",\r\n    \"songs\": [\r\n        1,3,4,5,6,\r\n        {\r\n            \"song_name\": \"song_name\",\r\n            \"duration\": \"2023-06-11 10:30:00\",\r\n            \"genre\": \"genre\",\r\n            \"release_date\": \"2023-06-11 10:30:00\",\r\n            \"publisher_id\": 1,\r\n            \"other_artists\": [\r\n                3\r\n            ]\r\n        }\r\n    ]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -115,13 +123,34 @@
 			"response": []
 		},
 		{
+			"name": "Search Song",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/dbproj/song/style",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"dbproj",
+						"song",
+						"style"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Add a Comment",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY1ODQ1OTEuNDA3NDY5fQ.dHwWJeoGol18FKDAsbH4XZFiBJqESzlrhFWkIrl_CQc\",\r\n    \"comment\": \"Estou a comentar uma música\"\r\n}",
+					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY5MjcwNTUuMjk4ODMxfQ.DzKQbBDXwPlVYs5Ror0qQp0KrOZL_Pd4O-bEe2Y1AQc\",\r\n    \"comment\": \"Estou a comentar uma música\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -151,7 +180,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY1ODQ1OTEuNDA3NDY5fQ.dHwWJeoGol18FKDAsbH4XZFiBJqESzlrhFWkIrl_CQc\",\r\n    \"comment\": \"Estou a comentar um comentário\"\r\n}",
+					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY5MjcyODcuNTg5OTA2fQ.tOcEg4wMffsOuS7oQ7DCHBlGdI1SriMA7XfjKugLrF4\",\r\n    \"comment\": \"Estou a comentar um comentário\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -159,7 +188,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/dbproj/comments/1/1",
+					"raw": "http://localhost:8080/dbproj/comments/1/5",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -169,7 +198,7 @@
 						"dbproj",
 						"comments",
 						"1",
-						"1"
+						"5"
 					]
 				}
 			},
@@ -203,7 +232,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY4NDE0NDEuNjA0NjM2fQ.VpwPmchJIl06KVS_Hxsfb2IUQ_WGmwSdrUk0poJw6A4\",\r\n    \"playlist_name\": \"minhas favoritas\",\r\n    \"visibility\": \"public\",\r\n    \"songs\": [1]\r\n}",
+					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY5MjA4NTUuMTIxNDY3fQ.j5McN7pTJ4oFKzE_n2vRIGnNFtQPqmSfxde06Q3t8VY\",\r\n    \"playlist_name\": \"minhas favoritas\",\r\n    \"visibility\": \"public\",\r\n    \"songs\": [1,2,3,4,5,6,7,8,9]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -255,42 +284,13 @@
 			"response": []
 		},
 		{
-			"name": "Add User",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n    \"username\": \"username\",\r\n    \"email\": \"email\",\r\n    \"password\": \"password\"\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://localhost:8080/dbproj/user",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"dbproj",
-						"user"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Subscribe to Premium",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY4NjUwMzYuNzEwNzMyfQ.sUH22AuCQeC8udLKhNQrmfBGo72L47zdcYl2S8XZ_h0\",\r\n    \"period\": \"month\",\r\n    \"cards\": [\r\n        \"FNAF8CM46QATB04U\",\r\n        \"N6G5F3TS0BO59IKW\"\r\n    ]\r\n}",
+					"raw": "{\r\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY4NjUzNTQuNDA2Njg5fQ.KkchqnozfpwaTr54yXHY0WlHAFR2cvWB13SEVlOnV70\",\r\n    \"period\": \"month\",\r\n    \"cards\": [\r\n        \"FNAF8CM46QATB04U\",\r\n        \"N6G5F3TS0BO59IKW\"\r\n    ]\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -319,7 +319,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY5MDg2NDEuNzM3NjUzfQ.csnkIdFW5HduDQHQqFBTANucNd4CgvXj9gbS2Nu02RQ\"\r\n}",
+					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY5MjA5ODguMzk1ODkzfQ.A9A5EzDHpv-L0jbdTqQ7N0E0ippAKyyjulUngUUBTA8\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -327,7 +327,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/dbproj/1",
+					"raw": "http://localhost:8080/dbproj/16",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -335,7 +335,7 @@
 					"port": "8080",
 					"path": [
 						"dbproj",
-						"1"
+						"16"
 					]
 				}
 			},
@@ -351,7 +351,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "",
+					"raw": "{\r\n    \"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJleHAiOjE2ODY5MTY0MTAuNTk4MDE4fQ.iJke9iSIQICwXgonWMb2v9FOhGfGFHnYIS4ukPkzyQg\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
