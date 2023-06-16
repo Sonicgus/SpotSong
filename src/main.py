@@ -131,6 +131,7 @@ def add_user():
                 "results": "Usuario com esse username já existe. Escolha outro",
             }
             cur.execute("ROLLBACK;")
+            conn.close()
             return flask.jsonify(response)
 
         statement = "INSERT INTO users (username, email, password) VALUES (%s, %s, %s) RETURNING id;"
@@ -154,6 +155,7 @@ def add_user():
                         "results": f"{field} not in payload",
                     }
                     cur.execute("ROLLBACK;")
+                    conn.close()
                     return flask.jsonify(response)
 
             try:
@@ -168,6 +170,7 @@ def add_user():
                     "results": "token invalido. tente autenticar novamente",
                 }
                 cur.execute("ROLLBACK;")
+                conn.close()
                 return flask.jsonify(response)
 
             statement = "SELECT users_id FROM administrator WHERE users_id = %s"
@@ -182,6 +185,7 @@ def add_user():
                     "results": "token invalido",
                 }
                 cur.execute("ROLLBACK;")
+                conn.close()
                 return flask.jsonify(response)
             adm_id = res[0]
 
@@ -197,6 +201,7 @@ def add_user():
                     "results": "Usuario com esse nome artistico já existe. Escolha outro",
                 }
                 cur.execute("ROLLBACK;")
+                conn.close()
                 return flask.jsonify(response)
 
             statement = "INSERT INTO artist (artistic_name, administrator_users_id,label_id,person_users_id) VALUES (%s,%s,%s,%s)"
@@ -278,6 +283,7 @@ def authenticate_user():
                 "status": StatusCodes["api_error"],
                 "results": "username incorreto",
             }
+            conn.close()
             return flask.jsonify(response)
 
         if bcrypt.checkpw(payload["password"].encode("utf-8"), row[1].encode("utf-8")):
@@ -299,6 +305,7 @@ def authenticate_user():
                 "status": StatusCodes["api_error"],
                 "errors": "Passsword incorreta",
             }
+            conn.close()
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(error)
@@ -373,6 +380,7 @@ def add_song():
                 "results": "token invalido.",
             }
             cur.execute("ROLLBACK;")
+            conn.close()
             return flask.jsonify(response)
 
         statement = "SELECT id FROM label WHERE id = %s"
@@ -386,6 +394,7 @@ def add_song():
                 "results": "publisher_id invalido.",
             }
             cur.execute("ROLLBACK;")
+            conn.close()
             return flask.jsonify(response)
 
         statement = "INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn;"
@@ -426,6 +435,7 @@ def add_song():
                         "results": f"artista com o id {artist_id} nao existe.",
                     }
                     cur.execute("ROLLBACK;")
+                    conn.close()
                     return flask.jsonify(response)
 
                 statement = "INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s)"
@@ -520,6 +530,8 @@ def add_album():
                 "status": StatusCodes["api_error"],
                 "results": "Token inválido.",
             }
+            cur.execute("ROLLBACK;")
+            conn.close()
             return flask.jsonify(response)
 
         statement = "SELECT publisher_id FROM label WHERE publisher_id = %s"
@@ -532,6 +544,8 @@ def add_album():
                 "status": StatusCodes["api_error"],
                 "results": "Token inválido.",
             }
+            cur.execute("ROLLBACK;")
+            conn.close()
             return flask.jsonify(response)
 
         # parameterized queries, good for security and performance
@@ -564,6 +578,7 @@ def add_album():
                             "results": f"{field} not in payload",
                         }
                         cur.execute("ROLLBACK;")
+                        conn.close()
                         return flask.jsonify(response)
 
                 statement = "SELECT publisher_id FROM label WHERE publisher_id = %s"
@@ -577,6 +592,8 @@ def add_album():
                         "status": StatusCodes["api_error"],
                         "results": "Token inválido.",
                     }
+                    cur.execute("ROLLBACK;")
+                    conn.close()
                     return flask.jsonify(response)
 
                 statement = "INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn;"
@@ -606,6 +623,7 @@ def add_album():
                                 "results": f"artista com o id {artist_id} nao existe.",
                             }
                             cur.execute("ROLLBACK;")
+                            conn.close()
                             return flask.jsonify(response)
 
                         statement = "INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s);"
@@ -637,6 +655,7 @@ def add_album():
                         "errors": f"You are not associated with song {song}",
                     }
                     cur.execute("ROLLBACK;")
+                    conn.close()
                     return flask.jsonify(response)
                 song_id = song
 
