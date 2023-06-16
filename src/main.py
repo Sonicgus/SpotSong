@@ -342,7 +342,14 @@ def add_song():
     logger.debug(f"POST /dbproj/song - payload: {payload}")
 
     # validate every argument:
-    required_fields = ["token", "song_name","duration","genre","release_date","publisher_id"]
+    required_fields = [
+        "token",
+        "song_name",
+        "duration",
+        "genre",
+        "release_date",
+        "publisher_id",
+    ]
     for field in required_fields:
         if field not in payload:
             response = {
@@ -423,7 +430,9 @@ def add_song():
 
         if "other_artists" in payload:
             for artist_id in payload["other_artists"]:
-                statement = "SELECT person_users_id FROM artist WHERE person_users_id = %s"
+                statement = (
+                    "SELECT person_users_id FROM artist WHERE person_users_id = %s"
+                )
                 values = (artist_id,)
 
                 cur.execute(statement, values)
@@ -436,7 +445,7 @@ def add_song():
                     }
                     cur.execute("ROLLBACK;")
                     return flask.jsonify(response)
-                
+
                 statement = "INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s)"
                 values = (
                     artist_id,
@@ -455,6 +464,180 @@ def add_song():
 
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"POST /dbproj/song - error: {error}")
+        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
+
+        # an error occurred, rollback
+        cur.execute("ROLLBACK;")
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+    return flask.jsonify(response)
+
+
+#
+# POST
+#
+# Add a new album in a JSON payload
+#
+# To use it, you need to use postman or curl:
+#
+# curl -X POST http://localhost:8080/dbproj/album -H 'Content-Type: application/json' -d '{“album_name”: “name”, “release_date”: “date”, “publisher”: publisher_id, “other_artists”: [artist_id1, artist_id2, (…)]}, (…)}
+#
+@app.route("/dbproj/album", methods=["POST"])
+def add_album():
+    logger.info("POST /dbproj/album")
+    payload = flask.request.get_json()
+
+    logger.debug(f"POST /dbproj/album - payload: {payload}")
+
+    # validate every argument:
+    required_fields = ["token", "album_name", "release_date", "publisher_id", "songs"]
+    for field in required_fields:
+        if field not in payload:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": f"{field} not in payload",
+            }
+            return flask.jsonify(response)
+
+    if len(payload["songs"]) == 0:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "there are no songs in the payload",
+        }
+        return flask.jsonify(response)
+
+    try:
+        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
+
+    except jwt.exceptions.ExpiredSignatureError:
+        response = {
+            "status": StatusCodes["api_error"],
+            "results": "token inválido. Tente autenticar novamente",
+        }
+        return flask.jsonify(response)
+
+    if "user_id" not in credentials:
+        response = {"status": StatusCodes["api_error"], "results": "Token inválido"}
+        return flask.jsonify(response)
+
+    conn = db_connection()
+    cur = conn.cursor()
+
+    try:
+        # begin the transaction
+        cur.execute("BEGIN TRANSACTION;")
+
+        # parameterized queries, good for security and performance
+        statement = "SELECT person_users_id FROM artist WHERE person_users_id = %s"
+        values = (credentials["user_id"],)
+
+        cur.execute(statement, values)
+        indb = cur.fetchone()
+        if indb is None:
+            response = {
+                "status": StatusCodes["api_error"],
+                "results": "Token inválido.",
+            }
+            return flask.jsonify(response)
+
+        # parameterized queries, good for security and performance
+        statement = "INSERT INTO album (title, release_date, artist_person_users_id, label_id) VALUES (%s,%s,%s,%s) RETURNING id;"
+        values = (
+            payload["album_name"],
+            payload["release_date"],
+            credentials["user_id"],
+            payload["publisher_id"],
+        )
+
+        cur.execute(statement, values)
+
+        album_id = cur.fetchone()[0]
+
+        for song in payload["songs"]:
+            song_id = 0
+            if type(song) is dict:
+                required_fields = [
+                    "song_name",
+                    "duration",
+                    "genre",
+                    "release_date",
+                    "publisher_id",
+                ]
+                for field in required_fields:
+                    if field not in song:
+                        response = {
+                            "status": StatusCodes["api_error"],
+                            "results": f"{field} not in payload",
+                        }
+                        cur.execute("ROLLBACK;")
+                        return flask.jsonify(response)
+                statement = "INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn;"
+                values = (
+                    song["song_name"],
+                    song["release_date"],
+                    song["duration"],
+                    song["genre"],
+                    credentials["user_id"],
+                    song["publisher_id"],
+                )
+                cur.execute(statement, values)
+
+                song_id = cur.fetchone()[0]
+
+                if "other_artists" in song:
+                    for artist_id in song["other_artists"]:
+                        statement = "INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s);"
+                        values = (
+                            artist_id,
+                            song_id,
+                        )
+                        cur.execute(statement, values)
+
+                statement = "INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s);"
+                values = (
+                    credentials["user_id"],
+                    song_id,
+                )
+
+                cur.execute(statement, values)
+
+            else:
+                statement = "SELECT artist_person_users_id FROM artist_song WHERE song_ismn = %s AND artist_person_users_id = %s"
+                values = (
+                    song,
+                    credentials["user_id"],
+                )
+
+                cur.execute(statement, values)
+                if cur.fetchone() is None:
+                    response = {
+                        "status": StatusCodes["api_error"],
+                        "errors": f"You are not associated with song {song}",
+                    }
+                    cur.execute("ROLLBACK;")
+                    return flask.jsonify(response)
+                song_id = song
+
+            statement = "INSERT INTO song_album (song_ismn, album_id) VALUES (%s,%s);"
+            values = (
+                song_id,
+                album_id,
+            )
+            cur.execute(statement, values)
+
+        # commit the transaction
+        cur.execute("COMMIT;")
+
+        response = {
+            "status": StatusCodes["success"],
+            "results": f"Inserted album {album_id}",
+        }
+
+    except (Exception, psycopg.DatabaseError) as error:
+        logger.error(f"POST /dbproj/album - error: {error}")
         response = {"status": StatusCodes["internal_error"], "errors": str(error)}
 
         # an error occurred, rollback
@@ -592,232 +775,6 @@ def detail_artist(artist_id):
     except (Exception, psycopg.DatabaseError) as error:
         logger.error(f"GET /dbproj/song/{artist_id} - error: {error}")
         response = {"status": StatusCodes["internal_error"], "errors": str(error)}
-
-    finally:
-        if conn is not None:
-            conn.close()
-
-    return flask.jsonify(response)
-
-
-#
-# POST
-#
-# Add a new album in a JSON payload
-#
-# To use it, you need to use postman or curl:
-#
-# curl -X POST http://localhost:8080/dbproj/album -H 'Content-Type: application/json' -d '{“album_name”: “name”, “release_date”: “date”, “publisher”: publisher_id, “other_artists”: [artist_id1, artist_id2, (…)]}, (…)}
-#
-@app.route("/dbproj/album", methods=["POST"])
-def add_album():
-    logger.info("POST /dbproj/album")
-    payload = flask.request.get_json()
-
-    logger.debug(f"POST /dbproj/album - payload: {payload}")
-
-    # validate every argument:
-    if "token" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "album_name" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "album_name value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "release_date" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "release_date value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "publisher_id" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "publisher_id value not in payload",
-        }
-        return flask.jsonify(response)
-
-    if "songs" not in payload:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "songs not in payload",
-        }
-        return flask.jsonify(response)
-
-    if len(payload["songs"]) == 0:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "there are not songs in the payload",
-        }
-        return flask.jsonify(response)
-
-    try:
-        credentials = jwt.decode(payload["token"], secret_key, algorithms="HS256")
-
-    except jwt.exceptions.ExpiredSignatureError:
-        response = {
-            "status": StatusCodes["api_error"],
-            "results": "token invalido. tente autenticar novamente",
-        }
-        return flask.jsonify(response)
-
-    if "user_id" not in credentials:
-        response = {"status": StatusCodes["api_error"], "results": "Invalid token"}
-        return flask.jsonify(response)
-
-    for song in payload["songs"]:
-        if "song_id" not in song:
-            if "song_name" not in song:
-                response = {
-                    "status": StatusCodes["api_error"],
-                    "results": "song_name value not in song",
-                }
-                return flask.jsonify(response)
-
-            if "duration" not in song:
-                response = {
-                    "status": StatusCodes["api_error"],
-                    "results": "duration value not in song",
-                }
-                return flask.jsonify(response)
-
-            if "genre" not in song:
-                response = {
-                    "status": StatusCodes["api_error"],
-                    "results": "genre value not in song",
-                }
-                return flask.jsonify(response)
-
-            if "release_date" not in song:
-                response = {
-                    "status": StatusCodes["api_error"],
-                    "results": "release_date value not in song",
-                }
-                return flask.jsonify(response)
-
-            if "publisher_id" not in song:
-                response = {
-                    "status": StatusCodes["api_error"],
-                    "results": "publisher_id value not in song",
-                }
-                return flask.jsonify(response)
-
-    conn = db_connection()
-    cur = conn.cursor()
-
-    try:
-        # begin the transaction
-        cur.execute("BEGIN TRANSACTION;")
-
-        # parameterized queries, good for security and performance
-        statement = "SELECT person_users_id FROM artist WHERE person_users_id = %s"
-        values = (credentials["user_id"],)
-
-        cur.execute(statement, values)
-        indb = cur.fetchone()
-        if indb is None:
-            response = {
-                "status": StatusCodes["api_error"],
-                "results": "token invalido.",
-            }
-            return flask.jsonify(response)
-
-        for song in payload["songs"]:
-            if song is not dict:
-                #  validate if the artist is associated with the selected existing songs
-                statement = "SELECT artist_person_users_id FROM artist_song WHERE song_ismn = %s AND artist_person_users_id = %s"
-                values = (
-                    song["song_id"],
-                    credentials["user_id"],
-                )
-
-                cur.execute(statement, values)
-                if cur.fetchone()[0] is None:
-                    response = {
-                        "status": StatusCodes["api_error"],
-                        "errors": f'you are not associated with {song["song_id"]} song',
-                    }
-                    conn.close()
-                    return flask.jsonify(response)
-
-        # parameterized queries, good for security and performance
-        statement = "INSERT INTO album (title, release_date, artist_person_users_id, label_id) VALUES (%s,%s,%s,%s) RETURNING id;"
-        values = (
-            payload["album_name"],
-            payload["release_date"],
-            credentials["user_id"],
-            payload["publisher_id"],
-        )
-
-        cur.execute(statement, values)
-
-        album_id = cur.fetchone()[0]
-
-        for song in payload["songs"]:
-            song_id = 0
-            if song is not dict:
-                song_id = song
-
-            else:
-                statement = "INSERT INTO song (title, release_date, duration, genre, artist_person_users_id, label_id) VALUES (%s, %s, %s, %s, %s, %s) RETURNING ismn;"
-                values = (
-                    song["song_name"],
-                    song["release_date"],
-                    song["duration"],
-                    song["genre"],
-                    credentials["user_id"],
-                    song["publisher_id"],
-                )
-                cur.execute(statement, values)
-
-                song_id = cur.fetchone()[0]
-
-                statement = "INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s);"
-                values = (
-                    credentials["user_id"],
-                    song_id,
-                )
-
-                cur.execute(statement, values)
-
-                if "other_artists" in song:
-                    for artist_id in song["other_artists"]:
-                        statement = "INSERT INTO artist_song (artist_person_users_id, song_ismn) VALUES (%s, %s);"
-                        values = (
-                            artist_id,
-                            song_id,
-                        )
-                        cur.execute(statement, values)
-
-            statement = "INSERT INTO song_album (song_ismn, album_id) VALUES (%s,%s);"
-            values = (
-                song_id,
-                album_id,
-            )
-            cur.execute(statement, values)
-
-        # commit the transaction
-        cur.execute("COMMIT;")
-
-        response = {
-            "status": StatusCodes["success"],
-            "results": f"Inserted album {album_id}",
-        }
-
-    except (Exception, psycopg.DatabaseError) as error:
-        logger.error(f"POST /dbproj/album_id - error: {error}")
-        response = {"status": StatusCodes["internal_error"], "errors": str(error)}
-
-        # an error occurred, rollback
-        cur.execute("ROLLBACK;")
 
     finally:
         if conn is not None:
