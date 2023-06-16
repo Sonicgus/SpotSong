@@ -216,8 +216,13 @@ def add_user():
             statement = "INSERT INTO consumer (person_users_id) VALUES (%s)"
             values = (user_id,)
             cur.execute(statement, values)
-            statement = "INSERT INTO playlist (name,consumer_person_users_id) VALUES (%s,%s)"
-            values = ('TOP 10',user_id,)
+            statement = (
+                "INSERT INTO playlist (name,consumer_person_users_id) VALUES (%s,%s)"
+            )
+            values = (
+                "TOP 10",
+                user_id,
+            )
 
         cur.execute(statement, values)
 
