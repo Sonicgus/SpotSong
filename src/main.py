@@ -620,9 +620,10 @@ def add_album():
 # GET http://localhost:8080/dbproj/song/{keyword}
 @app.route("/dbproj/song/<keyword>", methods=["GET"])
 def search_song(keyword):
+    payload = flask.request.get_json()
     logger.info("GET /dbproj/song/{keyword}")
 
-    logger.debug("GET /dbproj/song/{keyword}")
+    logger.debug("GET /dbproj/song/{keyword} - payload: {payload}")
 
     conn = db_connection()
     cur = conn.cursor()
