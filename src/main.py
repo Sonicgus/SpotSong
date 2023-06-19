@@ -534,15 +534,15 @@ def add_album():
             conn.close()
             return flask.jsonify(response)
 
-        statement = "SELECT publisher_id FROM label WHERE publisher_id = %s"
-        values = (credentials["publisher_id"],)
+        statement = "SELECT id FROM label WHERE id = %s"
+        values = (payload["publisher_id"],)
 
         cur.execute(statement, values)
         indb = cur.fetchone()
         if indb is None:
             response = {
                 "status": StatusCodes["api_error"],
-                "results": "Token inválido.",
+                "results": "label invalida.",
             }
             cur.execute("ROLLBACK;")
             conn.close()
@@ -581,7 +581,7 @@ def add_album():
                         conn.close()
                         return flask.jsonify(response)
 
-                statement = "SELECT publisher_id FROM label WHERE publisher_id = %s"
+                statement = "SELECT id FROM label WHERE id = %s"
 
                 values = (song["publisher_id"],)
 
@@ -1670,8 +1670,7 @@ def monthly_report(year, month):
         }
         return flask.jsonify(response)
 
-    init_date = datetime.datetime(
-        int(year) - 1, int(month), 1).strftime("%Y-%m-%d")
+    init_date = datetime.datetime(int(year) - 1, int(month), 1).strftime("%Y-%m-%d")
     end_date = datetime.datetime(int(year), int(month), 1).strftime("%Y-%m-%d")
 
     conn = db_connection()
